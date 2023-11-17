@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<head>
+  <title>Exam</title>
+</head>
+<style>
+  .banner {
+    width: 100%;
+    position: relative;
+  }
+  .textonImages {
+    position: absolute;
+    top: 10%;
+    margin-left: 15px;
+  }
+  .mycart {
+    border: 1;
+    border-style: solid;
+    border-radius: 20px;
+    width: 250px;
+  }
+  .cartTitle {
+    padding: 1px;
+    text-align: center;
+  }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .products-container {
+    display: flex;
+    /* justify-content: space-between; */
+  }
+
+  .product-box {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    width: 300px;
+  }
+
+  .product-box img {
+    max-width: 100px;
+    height: auto;
+    display: block;
+    margin: 0 auto 10px;
+  }
+  .row {
+    display: flex;
+  }
+</style>
+<body style="position: relative">
+  <div class="banner">
+    <img src="download.jpg" style="width: 100%; height: 400px" />
+    <div class="textonImages">
+      <h1>Online Store</h1>
+      <h2 style="color: aliceblue">fast delivery</h2>
+      <h3 style="color: aliceblue">Best Prices and qualities</h3>
+    </div>
+  </div>
+  <div class="row">
+    <div class="products-container" id="productsContainer"></div>
+    <script>
+      // Sample data (replace this with your actual data)
+      document.addEventListener("DOMContentLoaded", function () {
+        // Sample data (replace this with your actual data)
+        const items = ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"];
+        const prices = [10, 20, 15, 25, 30];
+        const images = [
+          "boxes.jpg",
+          "boxes.jpg",
+          "boxes.jpg",
+          "boxes.jpg",
+          "boxes.jpg",
+        ];
+
+        // Get the container element
+        const container = document.getElementById("productsContainer");
+        const totalSumDiv = document.getElementById("totalSum");
+
+        // Create the product boxes dynamically
+        for (let i = 0; i < items.length; i++) {
+          // Create the product box
+          const productBox = document.createElement("div");
+          productBox.classList.add("product-box");
+
+          // Create the image element
+          const img = document.createElement("img");
+          img.src = images[i];
+          img.alt = items[i];
+          productBox.appendChild(img);
+
+          // Create the item name element
+          const itemName = document.createElement("h3");
+          itemName.textContent = items[i];
+          productBox.appendChild(itemName);
+
+          // Create the price element
+          const price = document.createElement("p");
+          price.textContent = "$" + prices[i];
+          productBox.appendChild(price);
+
+          // Create the "Add to Cart" button
+          const addToCartButton = document.createElement("button");
+          addToCartButton.textContent = "Add to Cart";
+          addToCartButton.addEventListener("click", function () {
+            addToCart(items[i]);
+          });
+          productBox.appendChild(addToCartButton);
+
+          // Add the product box to the container
+          container.appendChild(productBox);
+        }
+
+        // Cart functionality
+        const cartItems = [];
+  const cartList = document.getElementById("cartItems");
+  const cartContainer = document.getElementById("cartContainer");
+
+  function addToCart(item, price) {
+    cartItems.push({ item, price });
+    updateCart();
+  }
+
+  function updateCart() {
+    if (cartItems.length === 0) {
+      cartList.innerHTML = "<div>Your Cart is empty !</div>";
+      totalSumDiv.textContent = ""; // Hide the total sum when the cart is empty
+    } else {
+      cartList.innerHTML = "";
+      let totalSum = 0;
+      cartItems.forEach(function (cartItem) {
+        const li = document.createElement("li");
+        li.textContent = cartItem.item;
+        cartList.appendChild(li);
+        totalSum += cartItem.price;
+      });
+
+      totalSumDiv.textContent = "Total Sum: $" + totalSum.toFixed(2); // Show the total sum with 2 decimal places
+    }
+  }
+
+        updateCart();
+      });
+    </script>
+    <div class="cart-container" id="cartContainer">
+      <h1 class="cartTitle">My Cart</h1>
+      <div>Your Cart:</div>
+      <ul id="cartItems"></ul>
+      <div id="totalSum"></div>
+      <!-- New div for showing total sum -->
+    </div>
+  </div>
+</body>

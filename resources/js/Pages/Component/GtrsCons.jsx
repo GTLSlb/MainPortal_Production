@@ -79,7 +79,6 @@ export default function GtrsCons({
         setactiveCon(coindex);
     };
     const [filteredData, setFilteredData] = useState(consData);
-
     const [selectedConsignment, setSelectedConsignment] = useState("");
     const handleStartDateChange = (event) => {
         const value = event.target.value;
@@ -355,17 +354,6 @@ export default function GtrsCons({
                                 />
                             </div>
                         </div>
-                        {/* <div className=" object-right flex-item md:ml-auto">
-                            <div className="h-full">
-                                <button
-                                    type="button"
-                                    onClick={handleDownloadExcel}
-                                    className="inline-flex items-center w-[5.5rem] h-7 rounded-md border border-transparent bg-gray-800 px-3 py-2 text-xs font-medium leading-4 text-white shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                >
-                                    Export XLS
-                                </button>
-                            </div>
-                        </div> */}
                         <Popover className="relative object-right flex-item md:ml-auto">
                             <button onMouseEnter={handleMouseEnter}>
                                 <Popover.Button

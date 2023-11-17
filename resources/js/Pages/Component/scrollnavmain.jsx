@@ -7,15 +7,17 @@ import LogoWhite from "../../assets/pictures/LogoWhite.webp";
 import { Link as ScrollLink } from "react-scroll";
 import { Popover, Transition } from "@headlessui/react";
 import { Fragment } from "react";
+import { Link } from "@inertiajs/inertia-react";
 import { ChevronDownIcon, BellAlertIcon } from "@heroicons/react/20/solid";
 
 const navigation = [
-    { name: "Services", href: "services" },
-    { name: "About Us", href: "aboutus" },
-    { name: "Technologies", href: "technologies" },
-    { name: "News", href: "news" },
-    { name: "Opportunities", href: "opportunities" },
-    { name: "Contact Us", href: "contact" },
+    { id:1, name: "About Us", href: "aboutus", link: false },
+    { id:2, name: "Services", href: "services", link: false },
+    { id:3, name: "Technologies", href: "technologies", link: false },
+    { id:4, name: "Media & News", href: "news", link: false },
+    { id:5, name: "Careers", href: "/opportunities", link: true },
+    { id:6, name: "Contact Us", href: "contact", link: false },
+    { id:7, name: "Going Green", href: "/goinggreen",link: true },
 ];
 
 export default function ScrollNav() {
@@ -65,7 +67,21 @@ export default function ScrollNav() {
             >
                 <div className="bg-dark w-full">
                     <div className="w-full h-6 bg-goldd bg-gradient-to-r from-goldl via-goldt to-goldd ">
-                        <div className="mx-auto sm:max-w-7xl sm:px-6 lg:px-8 flex items-center h-full justify-end">
+                    <div className="mx-auto sm:max-w-7xl sm:px-6 lg:px-8 flex items-center h-full justify-end lg:justify-between">
+                        <div className="hidden lg:flex gap-x-7">
+                            <a
+                                href="#contact"
+                                className="text-xs sm:text-sm font-bold flex h-full items-center"
+                            >
+                                Contact Us
+                            </a>
+                            <a
+                                href="/opportunities"
+                                className="text-xs sm:text-sm font-bold flex h-full items-center"
+                            >
+                                Careers
+                            </a>
+                        </div>
                             <a
                                 href="tel:+180040306"
                                 className="text-xs sm:text-sm font-bold flex h-full items-center"
@@ -190,14 +206,29 @@ export default function ScrollNav() {
                         </div>
                         <div className="hidden lg:flex lg:gap-x-8 h-8">
                             {navigation.map((item) => (
-                                <ScrollLink
-                                    key={item.name}
-                                    to={item.href}
-                                    smooth={true}
-                                    className="hover:cursor-pointer hover:border-b hover:border-goldt p-1  text-[1rem] font-semibold leading-6 text-goldt hover:text-white"
-                                >
-                                    {item.name}
-                                </ScrollLink>
+                                 item.id == 5||item.id==6?null:
+                                <div key={item.name}>
+                                {item.link ? (
+                                    <Link
+                                        key={item.name}
+                                        href={item.href}
+                                        // data={item.ref}
+                                        // smooth={true}
+                                        className="hover:cursor-pointer hover:border-b hover:border-goldt p-1   text-[1rem] font-semibold leading-6 text-goldt hover:text-white"
+                                    >
+                                        {item.name}
+                                    </Link>
+                                ) : (
+                                    <ScrollLink
+                                        key={item.name}
+                                        to={item.href}
+                                        smooth={true}
+                                        className="hover:cursor-pointer h-8 hover:border-b hover:border-goldt p-1 hover:text-white text-md font-semibold leading-6 text-goldt"
+                                    >
+                                        {item.name}
+                                    </ScrollLink>
+                                )}
+                            </div>
                             ))}
                         </div>
                         <div className="hidden  lg:flex lg:flex-1 lg:justify-end">
@@ -293,15 +324,28 @@ export default function ScrollNav() {
                         </div>
                         <div className="mt-6 space-y-2">
                             {navigation.map((item) => (
-                                <ScrollLink
-                                    key={item.name}
-                                    to={item.href}
-                                    smooth={true}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="hover:cursor-pointer -mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-goldt hover:bg-gray-400/10"
-                                >
-                                    {item.name}
-                                </ScrollLink>
+                                 <div key={item.name}>
+                                 {item.link ? (
+                                     <Link
+                                         key={item.name}
+                                         href={item.href}
+                                         // data={item.ref}
+                                         // smooth={true}
+                                         className="hover:cursor-pointer  -mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-goldt hover:bg-gray-400/10"
+                                         >
+                                         {item.name}
+                                     </Link>
+                                 ) : (
+                                     <ScrollLink
+                                         key={item.name}
+                                         to={item.href}
+                                         smooth={true}
+                                         className="hover:cursor-pointer  -mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-goldt hover:bg-gray-400/10"
+                                         >
+                                         {item.name}
+                                     </ScrollLink>
+                                 )}
+                             </div>
                             ))}
                             {/* {props.auth.user ? (
                                         <Link

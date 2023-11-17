@@ -38,6 +38,7 @@ import SupportModal from "@/Pages/Component/modals/SupportModal";
 export default function MainSidebar({
     setMobileMenuOpen,
     mobileMenuOpen,
+    setActiveIndexGtam,
     setactivePage,
     setActiveIndexInv,
     currentUser,
@@ -67,7 +68,54 @@ export default function MainSidebar({
             href: "#",
             icon: HomeIcon,
             current: false,
-            role: [""],
+            role: ["1"],
+        },
+        {
+            id: 1,
+            name: "GTAM",
+            href: "#",
+            icon: UsersIcon,
+            current: false,
+            options: [
+                // {
+                //     id: 0,
+                //     name: "Dashboard",
+                //     current: false,
+                //     role: ["1", "2", "3", "4", "5"],
+                // },
+                {
+                    id: 1,
+                    name: "Employees",
+                    current: false,
+                    role: ["1", "2", "3", "4", "5"],
+                },
+                {
+                    id: 2,
+                    name: "Roles",
+                    current: false,
+                    role: ["1", "2", "3", "4", "5"],
+                },
+                {
+                    id: 3,
+                    name: "Apps",
+                    current: false,
+                    role: ["1", "2", "3", "4", "5"],
+                },
+                {
+                    id: 4,
+                    name: "Groups",
+                    current: false,
+                    role: ["1", "2", "3", "4", "5"],
+                },
+                {
+                    id: 5,
+                    name: "Branches",
+                    current: false,
+                    role: ["1", "4"],
+                },
+                
+            ],
+            role: ["1"],
         },
         {
             id: 3,
@@ -258,6 +306,8 @@ export default function MainSidebar({
             setActiveIndexGTRS(tabind);
         } else if (index == 4) {
             setActiveIndexInv(tabind);
+        }else if (index == 1){
+            setActiveIndexGtam(tabind);
         }
 
         setMobileMenuOpen(false);
@@ -290,7 +340,7 @@ export default function MainSidebar({
         <div>
             <div className="hidden md:flex md:flex-shrink-0 h-full fixed top-0 left-0 z-50 w-auto h-screen">
                 <div className="flex w-20 flex-col">
-                    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-gray-800">
+                    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-gray-800 containerscroll">
                         <div className="flex-1">
                             <div className="flex items-center justify-center bg-gray-800 py-4">
                                 <a href="/">
@@ -299,7 +349,7 @@ export default function MainSidebar({
                             </div>
                             <nav
                                 aria-label="Sidebar"
-                                className="flex flex-col items-center space-y-3 pt-6 h-96"
+                                className="flex flex-col items-center space-y-3 pt-6"
                             >
                                 {sidebarElements
                                     .filter((item) =>
@@ -466,7 +516,7 @@ export default function MainSidebar({
                                 </div>
                                 <div className="mt-5 h-0 flex-1 overflow-y-auto px-2">
                                     <nav className="flex h-full flex-col">
-                                        <div className="space-y-1">
+                                        <div className="space-y-1 ">
                                             {sidebarElements
                                                 .filter((item) =>
                                                     item.role.includes(
@@ -526,26 +576,6 @@ export default function MainSidebar({
                                                                                 }
                                                                             </span>
                                                                             <ChevronDownIcon className="h-3" />
-                                                                            {/* {item.options ? 
-                                                                    <svg
-                                                                        class={`w-6 h-6 ${
-                                                                            !open
-                                                                                ? ""
-                                                                                : "rotate-90"
-                                                                        }`}
-                                                                        fill="currentColor"
-                                                                        viewBox="0 0 20 20"
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                    >
-                                                                        <path
-                                                                            fillRule="evenodd"
-                                                                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                                                            clipRule="evenodd"
-                                                                        />
-                                                                    </svg>
-                                                                    :
-                                                                     ""
-                                                                    } */}
                                                                         </AccordionHeader>
                                                                         {/* {sidebarElements.filter(item => item.role.includes(current_user_role)).map((item) => ( */}
 
@@ -695,18 +725,7 @@ export default function MainSidebar({
                                         </div>
                                     </nav>
                                 </div>
-                                {/* <ResponsiveNavLink
-                                                href={route("profile.edit")}
-                                                className="hover:bg-gray-900 hover:text-white "
-                                            >
-                                                <img
-                                                    className=" block h-8 w-8 rounded-full"
-                                                    src={user.imageUrl}
-                                                    alt=""
-                                                />
-                                            </ResponsiveNavLink> */}
-
-                                <a href="#" className="flex ">
+                                <a href="#" className="flex">
                                     {" "}
                                     <button
                                         onClick={() => handleEditClick()}

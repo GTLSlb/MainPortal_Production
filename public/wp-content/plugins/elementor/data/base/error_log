@@ -1,0 +1,28 @@
+[22-Dec-2022 18:53:59 UTC] PHP Fatal error:  Uncaught Error: Class 'Elementor\Data\Base\Endpoint' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/sub-endpoint.php:6
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/sub-endpoint.php on line 6
+[30-Dec-2022 12:54:50 UTC] PHP Fatal error:  Uncaught Error: Class 'WP_REST_Controller' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php on line 9
+[14-Jan-2023 13:06:33 Australia/Sydney] PHP Fatal error:  Uncaught Error: Class 'WP_REST_Controller' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php on line 9
+[16-Jan-2023 09:09:36 Australia/Sydney] PHP Fatal error:  Uncaught Error: Class 'WP_REST_Controller' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php on line 9
+[19-Jan-2023 03:49:52 Australia/Sydney] PHP Fatal error:  Uncaught Error: Class 'WP_REST_Controller' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php on line 9
+[23-Jan-2023 12:12:00 Australia/Sydney] PHP Fatal error:  Uncaught Error: Class 'WP_REST_Controller' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php on line 9
+[26-Jan-2023 03:40:41 Australia/Sydney] PHP Fatal error:  Uncaught Error: Class 'WP_REST_Controller' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/controller.php on line 9

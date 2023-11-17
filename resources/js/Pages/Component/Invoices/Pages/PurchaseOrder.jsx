@@ -1,9 +1,10 @@
-import {  useState } from "react";
+import { useState } from "react";
 import {
     NoSymbolIcon,
     DocumentChartBarIcon,
     DocumentCheckIcon,
     ExclamationCircleIcon,
+    CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import ExcelJS from "exceljs";
 import { TextFilter } from "../components/TextFilter";
@@ -12,6 +13,7 @@ import InvoicesButton from "../components/InvoicesButton";
 import { useEffect } from "react";
 import Select from "react-select";
 import moment from "moment/moment";
+import * as signalR from "@microsoft/signalr";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
@@ -20,6 +22,37 @@ function classNames(...classes) {
 export default function PurchaseOrder({
     setActiveIndexInv,
     POs,
+    filteredPOs,
+    setFilteredPOs,
+    sortedData,
+    setSortedData,
+    currentPage,
+    setCurrentPage,
+    activeJob,
+    setActiveJob,
+    selectedRecords,
+    setSelectedRecords,
+    originalData,
+    setOriginalData,
+    poNbSearch,
+    setpoNbSearch,
+    // selectedState,
+    // setSelectedState,
+    // selectedSupplier,
+    // setSelectedSupplier,
+    // selectedCompany,
+    // setSelectedCompany,
+    selectedStateOptions,
+    setselectedStateOptions,
+    selectedSupplierOptions,
+    setselectedSupplierOptions,
+    selectedCompanyOptions,
+    setselectedCompanyOptions,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    url,
     states,
     setPO,
     supplierData,
@@ -28,13 +61,44 @@ export default function PurchaseOrder({
     categories,
     setPODetails,
     currentUser,
+    getPOs,
     loadingPOs,
+    setPOs,
+    hubConnection,
+    setLoadingPOs,
+    activeIndexInv,
+    scrollPO,
+    setScrollPO,
 }) {
+    useEffect(() => {
+        setLoadingPOs(true);
+        axios
+            .get(`${url}api/GTIS/POs`, {
+                headers: {
+                    UserId: currentUser.user_id,
+                    PO_Id: null,
+                },
+            })
+            .then((res) => {
+                const x = JSON.stringify(res.data);
+                const parsedDataPromise = new Promise((resolve, reject) => {
+                    const parsedData = JSON.parse(x);
+                    resolve(parsedData);
+                });
+                parsedDataPromise.then((parsedData) => {
+                    setPOs(parsedData);
+                    setActiveIndexInv(2);
+                    setLoadingPOs(false);
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }, [activeIndexInv]);
     function filterbyState(jsonData) {
         if (!jsonData || jsonData.length === 0) {
             return [];
         }
-    
         if (currentUser.role_id == 6 || currentUser.role_id == 7) {
             return jsonData.filter(
                 (item) => item.StateId === currentUser.state
@@ -43,22 +107,31 @@ export default function PurchaseOrder({
             return jsonData;
         }
     }
-    
-    const [filteredPOs, setFilteredPOs] = useState(filterbyState(POs));
-    const [sortedData, setSortedData] = useState(filteredPOs);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [activeJob, setActiveJob] = useState(0);
-    const [selectedRecords, setSelectedRecords] = useState([]);
-    const [originalData,setOriginalData] = useState([]);
-    const [poNbSearch, setpoNbSearch] = useState();
-    const [selectedState, setSelectedState] = useState();
-    const [selectedSupplier, setSelectedSupplier] = useState();
-    const [selectedCompany, setSelectedCompany] = useState();
-    const [selectedStateOptions, setselectedStateOptions] = useState([]);
-    const [selectedSupplierOptions, setselectedSupplierOptions] = useState([]);
-    const [selectedCompanyOptions, setselectedCompanyOptions] = useState([]);
-    const [startDate, setStartDate] = useState(getOldestPoDate(POs));
-    const [endDate, setEndDate] = useState(getLatestPoDate(POs));
+    // const [filteredPOs, setFilteredPOs] = useState(filterbyState(POs));
+    // const [sortedData, setSortedData] = useState(filteredPOs);
+    // const [currentPage, setCurrentPage] = useState(0);
+    // const [activeJob, setActiveJob] = useState(0);
+    // const [selectedRecords, setSelectedRecords] = useState([]);
+    // const [originalData, setOriginalData] = useState([]);
+    // const [poNbSearch, setpoNbSearch] = useState();
+    const [selectedState, setSelectedState] = useState(selectedStateOptions);
+    const [selectedSupplier, setSelectedSupplier] = useState(
+        selectedSupplierOptions
+    );
+    const [selectedCompany, setSelectedCompany] = useState(
+        selectedCompanyOptions
+    );
+    // const [selectedStateOptions, setselectedStateOptions] = useState([]);
+    // const [selectedSupplierOptions, setselectedSupplierOptions] = useState([]);
+    // const [selectedCompanyOptions, setselectedCompanyOptions] = useState([]);
+    // const [startDate, setStartDate] = useState(getOldestPoDate(POs));
+    // const [endDate, setEndDate] = useState(getLatestPoDate(POs));
+    useEffect(() => {
+        setStartDate(getOldestPoDate(POs));
+        setEndDate(getLatestPoDate(POs));
+        setSortedData(filterbyState(POs));
+    }, []);
+
     useEffect(() => {
         setFilteredPOs(sortedData);
     }, [sortedData]);
@@ -175,6 +248,12 @@ export default function PurchaseOrder({
             current: false,
         },
         {
+            id: 4,
+            name: "Approved",
+            icon: CheckCircleIcon,
+            current: false,
+        },
+        {
             id: 2,
             name: "Rejected",
             icon: NoSymbolIcon,
@@ -188,7 +267,6 @@ export default function PurchaseOrder({
         },
     ]);
     const filterRecords = (jsonData) => {
-        setCurrentPage(0);
         let filteredData = Array.isArray(jsonData)
             ? jsonData.filter((record) => {
                   if (activeJob == 1) {
@@ -215,6 +293,8 @@ export default function PurchaseOrder({
                       }
                   } else if (activeJob == 3) {
                       return record.MatchInvoice == 3; // Rejected
+                  } else if (activeJob == 4) {
+                      return record.SecondApproval == 2;
                   } else if (activeJob == 0) {
                       return true; // Invalid activeJob, return empty array
                   } else {
@@ -271,6 +351,7 @@ export default function PurchaseOrder({
     };
     function changeFilter(index) {
         setActiveJob(index);
+        setCurrentPage(0)
         const updatedElements = purchasorderfilter.map((element) => {
             if (element.id === index) {
                 return { ...element, current: true };
@@ -280,6 +361,21 @@ export default function PurchaseOrder({
         });
         setpurchasorderfilter(updatedElements);
     }
+    function changeFilterfirst(index) {
+        setActiveJob(index);
+        // setCurrentPage(0)
+        const updatedElements = purchasorderfilter.map((element) => {
+            if (element.id === index) {
+                return { ...element, current: true };
+            } else {
+                return { ...element, current: false };
+            }
+        });
+        setpurchasorderfilter(updatedElements);
+    }
+    useEffect(() => {
+        changeFilterfirst(activeJob);
+    }, []);
     function handleCreate() {
         setPO(null);
         setActiveIndexInv(8);
@@ -314,7 +410,9 @@ export default function PurchaseOrder({
         { key: "PoDate", label: "Po Date", Filter: TextFilter },
         { key: "Amount", label: "Amount", Filter: TextFilter },
         { key: "ApprovalStatus", label: "Approval Status", Filter: TextFilter },
+        { key: "FirstApprovedBy", label: "Approved By", Filter: TextFilter },
         { key: "SecondApproval", label: "Second Approval", Filter: TextFilter },
+        { key: "SecondApprovedBy", label: "Authorized By", Filter: TextFilter },
         { key: "Description", label: "Description", Filter: TextFilter },
         { key: "MatchInvoice", label: "Match Invoice", Filter: TextFilter },
     ];
@@ -359,7 +457,9 @@ export default function PurchaseOrder({
         "Po Date",
         "Amount",
         "Approval Status",
+        "Approved By",
         "Second Approval",
+        "Authorized By",
         "Description",
         "Match Invoice",
     ];
@@ -430,6 +530,10 @@ export default function PurchaseOrder({
                                 category.CategoryId === object.CategoryId
                         );
                         acc[columnKey] = Category?.CategoryName;
+                    } else if (columnKey === "AuthorizedBy") {
+                        acc[columnKey] = object?.SecondApprovedBy;
+                    } else if (columnKey === "ApprovedBy") {
+                        acc[columnKey] = object?.FirstApprovedBy;
                     } else {
                         acc[column.replace(/\s+/g, "")] =
                             object[column.replace(/\s+/g, "")];
@@ -483,18 +587,83 @@ export default function PurchaseOrder({
             saveAs(blob, "Purchase orders.xlsx");
         });
     }
+    function AssistantOrManager() {
+        if (currentUser.role_id == 6 || currentUser.role_id == 7) return true;
+        else return false;
+    }
+
+    function ApproveSelected() {
+        let toApprove = selectedRecords.map((item) => {
+            return { ["OwnerId"]: item["PoId"] };
+        });
+        let type = 0;
+        if (currentUser.role_id == 10) {
+            type = 2;
+        } else {
+            type = 1;
+        }
+        const inputValues = {
+            ApprovalModel: 2,
+            ApprovalType: type,
+            MainId: toApprove,
+            StatusId: 2,
+            AddedBy: currentUser.user_id,
+        };
+        axios
+            .post(`${url}api/GTIS/ApprovalStatus`, inputValues, {
+                headers: {
+                    UserId: currentUser.user_id,
+                },
+            })
+            .then((res) => {
+                getPOs();
+                if (
+                    hubConnection &&
+                    hubConnection.state === signalR.HubConnectionState.Connected
+                ) {
+                    res.data.map((item) => {
+                        let array = [];
+                        array.push(item);
+                        hubConnection
+                            .invoke("SendNotification", array)
+                            .catch((error) => {
+                                console.error(
+                                    "Error sending notification:",
+                                    error
+                                );
+                            });
+                    });
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
 
     return (
         <div className="p-5 bg-smooth">
             <div className="flex gap-x-1 items-center">
                 <h1 className="font-bold text-dark text-3xl">Purchase Order</h1>{" "}
-                <p className="mt-auto text-gray-400">({POs?.length})</p>
+                <p className="mt-auto text-gray-400">({filteredPOs?.length})</p>
                 <div className=" ml-auto flex gap-x-2">
                     {selectedRecords.length > 0 ? (
                         <div className=" ">
                             <InvoicesButton
                                 name="Export"
                                 onClick={() => handleDownloadExcel()}
+                                className="w-auto ml-auto"
+                            />
+                        </div>
+                    ) : null}
+                    {selectedRecords.length > 0 &&
+                    activeJob == 1 &&
+                    (currentUser.role_id == 10 ||
+                        currentUser.role_id == 6 ||
+                        currentUser.role_id == 1) ? (
+                        <div className=" ">
+                            <InvoicesButton
+                                name="Approve"
+                                onClick={() => ApproveSelected()}
                                 className="w-auto ml-auto"
                             />
                         </div>
@@ -530,6 +699,7 @@ export default function PurchaseOrder({
                         <input
                             type="text"
                             placeholder="Po No"
+                            defaultValue={poNbSearch ? poNbSearch : ""}
                             onChange={handleSearchChange}
                             className="w-full py-0.5 h-[35px] pl-12 pr-4 text-gray-500 border-none rounded-md outline-none "
                         />
@@ -562,22 +732,26 @@ export default function PurchaseOrder({
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-3 mt-5">
-                <div>
-                    <div className="mt-2 w-full sm:mt-0 ">
-                        <Select
-                            placeholder={<div>State... </div>}
-                            styles={customStyles}
-                            isMulti
-                            name="colors"
-                            value={selectedState}
-                            isSearchable={false} // Set isSearchable to false to disable the search functionality
-                            options={stateSelectOption(states)}
-                            onChange={handleStateSelectChange}
-                            className="basic-multi-select text-red "
-                            classNamePrefix="select"
-                        />
+                {!AssistantOrManager() ? (
+                    <div>
+                        <div className="mt-2 w-full sm:mt-0 ">
+                            <Select
+                                placeholder={<div>State... </div>}
+                                // styles={customStyles}
+                                isMulti
+                                name="colors"
+                                defaultValue={selectedState}
+                                isClearable={true}
+                                isSearchable={true}
+                                options={stateSelectOption(states)}
+                                onChange={handleStateSelectChange}
+                                className="basic-multi-select z-20"
+                                classNamePrefix="select"
+                                id="stateSelect"
+                            />
+                        </div>
                     </div>
-                </div>
+                ) : null}
                 <div>
                     {" "}
                     <div className="mt-2 w-full sm:mt-0 ">
@@ -586,11 +760,12 @@ export default function PurchaseOrder({
                             styles={customStyles}
                             isMulti
                             name="colors"
-                            value={selectedSupplier}
-                            isSearchable={false} // Set isSearchable to false to disable the search functionality
+                            defaultValue={selectedSupplier}
+                            isClearable={true}
+                            isSearchable={true}
                             options={supplierSelectOption(supplierData)}
                             onChange={handleSupplierSelectChange}
-                            className="basic-multi-select text-red "
+                            className="basic-multi-select z-20 "
                             classNamePrefix="select"
                         />
                     </div>
@@ -603,11 +778,12 @@ export default function PurchaseOrder({
                             styles={customStyles}
                             isMulti
                             name="colors"
-                            value={selectedCompany}
-                            isSearchable={false} // Set isSearchable to false to disable the search functionality
+                            defaultValue={selectedCompany}
+                            isClearable={true}
+                            isSearchable={true}
                             options={companySelectOption(companies)}
                             onChange={handleCompanySelectChange}
-                            className="basic-multi-select text-red "
+                            className="basic-multi-select z-20"
                             classNamePrefix="select"
                         />
                     </div>
@@ -668,6 +844,8 @@ export default function PurchaseOrder({
                         setPODetails={setPODetails}
                         setActiveIndexInv={setActiveIndexInv}
                         currentUser={currentUser}
+                        scroll={scrollPO}
+                        setScroll={setScrollPO}
                     />
                 </div>
             )}

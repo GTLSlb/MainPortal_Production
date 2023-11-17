@@ -208,6 +208,16 @@ class RegisteredUserController extends Controller
             return response()->json(['user_name' => $test_user], 200);
         }
     }
+    public function getUsersWhoCanApprove()
+    {
+        $roles = [1,6, 9, 10];
+
+        $users = User::whereIn('role_id', $roles)
+            ->select('id', 'user_id', 'name')
+            ->get();
+
+        return response()->json($users);
+    }
     public function getSafetyData($user_ids)
     {
         // Extract the user IDs from the array

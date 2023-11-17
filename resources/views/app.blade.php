@@ -21,6 +21,7 @@
   gtag('config', 'G-0KMJRECLV1');
 </script>
 
+<!-- resources/views/layouts/app.blade.php -->
         <title inertia>{{ config('app.name', 'GTLS') }}</title>
 
         <!-- Fonts -->
@@ -33,7 +34,7 @@
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
     </head>
-    <body class="font-sans antialiased min-h-screen">
+    <body class="font-sans antialiased min-h-screen bg-smooth">
         @inertia
     </body>
 </html>

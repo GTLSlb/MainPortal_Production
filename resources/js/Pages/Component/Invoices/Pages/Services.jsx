@@ -8,6 +8,8 @@ export default function Services({
     setServices,
     services,
     AlertToast,
+    currentPage, 
+    setCurrentPage,
     getServices,
     currentUser,
 }) {
@@ -15,7 +17,7 @@ export default function Services({
         return 1;
     }
     const [showAddRow, setShowAddRow] = useState(false);
-    const [currentPage, setCurrentPage] = useState(0);
+    // const [currentPage, setCurrentPage] = useState(0);
     const addurl = `${url}api/GTIS/Add/Service`;
     const [isFetching, setIsFetching] = useState();
     const [editIndex, setEditIndex] = useState(null);
@@ -49,7 +51,7 @@ export default function Services({
         setCurrentPage(0);
         // Filter the data based on the start and end date filters
 
-        const filtered = objects.filter((item) => {
+        const filtered = services.filter((item) => {
             const ConsNbMatch =
                 name.length > 0
                     ? item.ServiceName.toLowerCase().includes(

@@ -112,8 +112,10 @@ export default function FailedCons({
             filterEndDate.setMinutes(59);
             filterEndDate.setHours(23);
             const receiverMatch = selectedConsignment
-                ? item.CONSIGNMENTNUMBER.includes(selectedConsignment)
-                : true; // Check if item's receiver name matches the selected receiver, or if no receiver is selected (return true to include all items)
+            ? item.CONSIGNMENTNUMBER.toLowerCase().includes(
+                  selectedConsignment.toLowerCase()
+              )
+            : true;
             return (
                 itemDate >= filterStartDate &&
                 itemDate <= filterEndDate &&

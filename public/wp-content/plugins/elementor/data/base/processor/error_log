@@ -1,0 +1,8 @@
+[18-Jan-2023 20:14:32 Australia/Sydney] PHP Fatal error:  Uncaught Error: Class 'Elementor\Data\Base\Processor' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/processor/before.php:6
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/processor/before.php on line 6
+[12-Feb-2023 05:59:36 Australia/Sydney] PHP Fatal error:  Uncaught Error: Class 'Elementor\Data\Base\Processor' not found in /home/gtls/public_html/wp-content/plugins/elementor/data/base/processor/after.php:6
+Stack trace:
+#0 {main}
+  thrown in /home/gtls/public_html/wp-content/plugins/elementor/data/base/processor/after.php on line 6

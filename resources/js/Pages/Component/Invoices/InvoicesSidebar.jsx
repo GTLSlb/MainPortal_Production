@@ -9,6 +9,7 @@ import {
     TagIcon,
 } from "@heroicons/react/24/outline";
 import "../../../../css/scroll.css";
+import { useEffect } from "react";
 
 const navigation = [
     // {
@@ -25,7 +26,7 @@ const navigation = [
         href: "#",
         icon: DocumentChartBarIcon,
         current: true,
-        role: ["1", "6","7","8","9","10"],
+        role: ["1", "6", "7", "8", "9", "10"],
     },
     {
         id: 2,
@@ -33,7 +34,7 @@ const navigation = [
         href: "#",
         icon: ShoppingCartIcon,
         current: false,
-        role: ["1",  "6","7","8","9","10"],
+        role: ["1", "6", "7", "8", "9", "10"],
     },
     {
         id: 3,
@@ -41,7 +42,7 @@ const navigation = [
         href: "#",
         icon: UsersIcon,
         current: false,
-        role: ["1",  "6","7","8","9","10"],
+        role: ["1", "6", "7", "8", "9", "10"],
     },
     {
         id: 4,
@@ -49,7 +50,7 @@ const navigation = [
         href: "#",
         icon: Cog8ToothIcon,
         current: false,
-        role: ["1", "6","7","8","9","10"],
+        role: ["1", "6", "7", "8", "9", "10"],
     },
     {
         id: 5,
@@ -57,7 +58,7 @@ const navigation = [
         href: "#",
         icon: BuildingOffice2Icon,
         current: false,
-        role: ["1", "6","7","8","9","10"],
+        role: ["1", "6", "7", "8", "9", "10"],
     },
     {
         id: 11,
@@ -65,7 +66,7 @@ const navigation = [
         href: "#",
         icon: TagIcon,
         current: false,
-        role: ["1",  "6","7","8","9","10"],
+        role: ["1", "6", "7", "8", "9", "10"],
     },
     {
         id: 12,
@@ -73,7 +74,7 @@ const navigation = [
         href: "#",
         icon: ExclamationCircleIcon,
         current: false,
-        role: ["1", "6","7","8","9","10"],
+        role: ["1", "6", "7", "8", "9", "10"],
     },
     // { name: 'Reports', href: '#', icon: ChartBarIcon, current: false },
 ];
@@ -86,6 +87,7 @@ export default function InvoicesSidebar({
     setPO,
     setInvoice,
     currentUser,
+    activeIndexInv,
     setActiveIndexInv,
 }) {
     function showhideCreateButtons() {
@@ -103,10 +105,16 @@ export default function InvoicesSidebar({
         }
     }
     const [sidebarElements, setSidebarElements] = useState(navigation);
-    const [customerOptions, setCustomerOptions] = useState([]);
-    const [showList, setShowList] = useState(false);
-    // const showSelect = true;
-    const showSelect = customerOptions.length > 0;
+    useEffect(() => {
+        const updatedElements = sidebarElements.map((element) => {
+            if (element.id === activeIndexInv) {
+                return { ...element, current: true };
+            } else {
+                return { ...element, current: false };
+            }
+        });
+        setSidebarElements(updatedElements);
+    }, [activeIndexInv]);
 
     // const [optionSelected, setoptionSelected] = useState([]);
 
@@ -171,7 +179,7 @@ export default function InvoicesSidebar({
                                 <span className="text-goldd px-2 xl:px-8 ">
                                     +
                                 </span>{" "}
-                                Create Invoices
+                                Create Invoice
                             </button>
                             {showhideOnlyPOCreateButtons() ? (
                                 <button

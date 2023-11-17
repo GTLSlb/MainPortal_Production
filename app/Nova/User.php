@@ -66,7 +66,7 @@ class User extends Resource
                     3 => 'VIC',
                 ]),
             Text::make('User Id')->sortable(),
-            BelongsTo::make('Role'),
+            BelongsTo::make('Role')->sortable(),
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')

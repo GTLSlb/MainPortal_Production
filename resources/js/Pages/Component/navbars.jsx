@@ -9,12 +9,13 @@ import { Popover, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 import { ChevronDownIcon, BellAlertIcon } from "@heroicons/react/20/solid";
 const navigation = [
-    { name: "Services", href: "/#services" },
-    { name: "About Us", href: "/#aboutus" },
-    { name: "Technologies", href: "/#technologies" },
-    { name: "News", href: "/#news" },
-    { name: "Opportunities", href: "/#opportunities" },
-    { name: "Contact Us", href: "/#contact" },
+    { id:1, name: "Services", href: "/#services" },
+    { id:2, name: "About Us", href: "/#aboutus" },
+    { id:3, name: "Technologies", href: "/#technologies" },
+    { id:4, name: "Media & News", href: "/#news" },
+    { id:5, name: "Careers", href: "/opportunities" },
+    { id:6, name: "Contact Us", href: "/#contact" },
+    { id:7, name: "Going Green", href: "/goinggreen" },
 ];
 export default function Navbars() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -58,7 +59,21 @@ export default function Navbars() {
         <div className="absolute  pb-2 bg-goldd bg-gradient-to-r from-goldl via-goldt to-goldd shadow-xl shadow-bottom z-30  w-full">
             <div className="bg-dark">
                 <div className="w-full h-6 bg-goldd bg-gradient-to-r from-goldl via-goldt to-goldd ">
-                    <div className="mx-auto sm:max-w-7xl sm:px-6 lg:px-8 flex items-center h-full justify-end">
+                    <div className="mx-auto sm:max-w-7xl sm:px-6 lg:px-8 flex items-center h-full justify-between">
+                        <div className="flex gap-x-7">
+                            <a
+                                href="#contact"
+                                className="text-xs sm:text-sm font-bold flex h-full items-center"
+                            >
+                                Contact Us
+                            </a>
+                            <a
+                                href="/opportunities"
+                                className="text-xs sm:text-sm font-bold flex h-full items-center"
+                            >
+                                Careers
+                            </a>
+                        </div>
                         <a
                             href="tel:+180040306"
                             className="text-xs sm:text-sm font-bold flex h-full items-center"
@@ -158,6 +173,7 @@ export default function Navbars() {
                     </div>
                     <div className="hidden lg:flex lg:gap-x-12 h-8">
                         {navigation.map((item) => (
+                            item.id == 5||item.id==6?null:
                             <Link
                                 key={item.name}
                                 href={item.href}
@@ -336,7 +352,21 @@ export default function Navbars() {
             >
                 <div className="w-full bg-dark">
                     <div className="w-full h-6 bg-goldd bg-gradient-to-r from-goldl via-goldt to-goldd ">
-                        <div className="mx-auto sm:max-w-7xl sm:px-6 lg:px-8 flex items-center h-full justify-end">
+                    <div className="mx-auto sm:max-w-7xl sm:px-6 lg:px-8 flex items-center h-full justify-end lg:justify-between">
+                        <div className="hidden lg:flex gap-x-7">
+                            <a
+                                href="/#contact"
+                                className="text-xs sm:text-sm font-bold flex h-full items-center"
+                            >
+                                Contact Us
+                            </a>
+                            <a
+                                href="/opportunities"
+                                className="text-xs sm:text-sm font-bold flex h-full items-center"
+                            >
+                                Careers
+                            </a>
+                        </div>
                             <a
                                 href="tel:+180040306"
                                 className="text-xs sm:text-sm font-bold flex h-full items-center"
@@ -439,6 +469,7 @@ export default function Navbars() {
                         </div>
                         <div className="hidden lg:flex lg:gap-x-12 h-8">
                             {navigation.map((item) => (
+                                 item.id == 5||item.id==6?null:
                                 <Link
                                     key={item.name}
                                     href={item.href}

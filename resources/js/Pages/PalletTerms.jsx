@@ -125,10 +125,9 @@ export default function PalletTerms(props) {
                                     Tiger Logistics Solutions pallet accounts.
                                     No Exchange of Pallets at pickup (unless
                                     agreed by Management) + 30 Day Delay to all
-                                    non-DC receivers from date of collection 35
-                                    Day Delay to all DC's (excluding Metcash,
-                                    IGA ,Brave, Bidfood and Lawland which
-                                    require a 55 Day Delay) from date of
+                                    receivers from date of collection (excluding
+                                    Metcash, IGA ,Brave, Bidfood and Lawland
+                                    which require a 55 Day Delay) from date of
                                     collection. Gold Tiger Logistics hold a
                                     position as an intermediary party in regard
                                     to pallets.
@@ -222,6 +221,14 @@ export default function PalletTerms(props) {
                                     <li className="flex gap-x-3 items-center">
                                         <div className=" h-2 w-2 flex-none rounded-full bg-goldt" />
                                         <span>
+                                            Gold Tiger Logistic Solutions
+                                            reserve the right to correct, amend
+                                            or reject any submitted transactions
+                                        </span>
+                                    </li>
+                                    <li className="flex gap-x-3 items-center">
+                                        <div className=" h-2 w-2 flex-none rounded-full bg-goldt" />
+                                        <span>
                                             Gold Tiger will not accept any
                                             transfers onto our account that are
                                             older than 30 days from date of
@@ -267,7 +274,7 @@ export default function PalletTerms(props) {
                                             deliveries from customers to DC's
                                             not going through a GTLS facility
                                             will require the sender to direct
-                                            transfer pallets to end customer.
+                                            transfer pallets to end customer
                                         </span>
                                     </li>
                                     <li className="flex gap-x-3 items-center">
@@ -298,7 +305,7 @@ export default function PalletTerms(props) {
                                             to reject any pallets that have been
                                             transferred onto our account if it
                                             is deemed damaged, Then the transfer
-                                            will be corrected/rejected.
+                                            will be corrected/rejected
                                         </span>
                                     </li>
                                     <li className="flex gap-x-3 items-center">
@@ -424,11 +431,89 @@ export default function PalletTerms(props) {
                                             acknowledged and accepted.
                                         </span>
                                     </li>
+                                    {/* <li className="flex gap-x-3 items-center">
+                                        <div className=" h-2 w-2 flex-none rounded-full bg-goldt" />
+                                        <span>
+                                        Consignee agrees that Pallet Services are provided subject to terms and of carriage as detailed in the Gold Tiger Logistic Solutions conditions of carriage and / or Storage. Freight is palletized for ease of delivery only. The Consignee agrees to accept transfer
+of hire charges or pay the current price for pallets when the exchange of equivalent pallets can have not been affected at the point of delivery. All Pallet Documentation must be received by Gold Tiger Logistic Solutions within 30 days of the Pickup / Delivery
+Date, documentation received after this date may be rejected or have an adjusted effective date applied at the discretion of Gold Tiger Logistic Solutions Pallet Control.
+                                        </span>
+                                    </li> */}
+                                    {/* <li className="flex gap-x-3 items-center">
+                                        <div className=" h-2 w-2 flex-none rounded-full bg-goldt" />
+                                        <span>
+                                            A signature by Gold Tiger Logistics
+                                            Solutions drivers is made on a
+                                            "Subject to check" basis and
+                                            consignments will be confirmed only
+                                            when Gold Tiger Logistics Solutions
+                                            accepts it. Any discrepancy between
+                                            the number of pallets sent in
+                                            accordance with the consignment note
+                                            and the number of pallets actually
+                                            received shall be charged to the
+                                            Consignee at the rate of $55.00 per
+                                            pallet plus GST.
+                                        </span>
+                                    </li>
+                                    <li className="flex gap-x-3 items-center">
+                                        <div className=" h-2 w-2 flex-none rounded-full bg-goldt" />
+                                        <span>
+                                            In instances where the pallet
+                                            dockets are retained by the
+                                            receiving customer and no copy is
+                                            provided to Gold Tiger Logistics
+                                            Solutions drivers, Gold Tiger
+                                            Logistics Solutions shall rely on
+                                            the receiving customer's signature
+                                            on the Proof of Delivery to infer
+                                            that the pallets have been received.
+                                            Should the receiving customer
+                                            subsequently reject Gold Tiger
+                                            Logistics Solutions transfer despite
+                                            signing the Proof of Delivery, Gold
+                                            Tiger Logistics Solutions reserves
+                                            its right to add or forward any
+                                            charge incurred to the sending
+                                            Customer. in such instances, the
+                                            sending customer agrees that Gold
+                                            Tiger shall not be responsible for
+                                            the dehire of the relevant pallets,
+                                            such dehire being the sole
+                                            responsibility of the sending
+                                            Customer.
+                                        </span>
+                                    </li>
+                                    <li className="flex gap-x-3 items-center">
+                                        <div className=" h-2 w-2 flex-none rounded-full bg-goldt" />
+                                        <span>
+                                            Customers are expected to sign these
+                                            Terms and Conditions and froward the
+                                            signed copy to Gold Tiger Logistics
+                                            Solutions offices within 7 working
+                                            days from the date of signature
+                                            however, the customer acknowledges
+                                            that transacting pallet movements
+                                            with Gold Tiger Logistic Solutions
+                                            constitutes an implicit and implied
+                                            agreement to these terms and
+                                            conditions and that these Terms and
+                                            Conditions are recognized,
+                                            acknowledged and accepted.
+                                        </span>
+                                    </li> */}
                                     <li className="flex gap-x-3 items-center">
                                         <div className=" h-2 w-2 flex-none rounded-full bg-goldt" />
                                         <span>
                                             All pallet queries are to be
-                                            forwarded to <a href="mailto:pallets@gtls.com.au" className="text-goldt">pallets@gtls.com.au</a>.
+                                            forwarded to{" "}
+                                            <a
+                                                href="mailto:pallets@gtls.com.au"
+                                                className="text-goldt"
+                                            >
+                                                pallets@gtls.com.au
+                                            </a>
+                                            .
                                         </span>
                                     </li>
                                     <li className="flex gap-x-3 items-center">
@@ -464,7 +549,6 @@ export default function PalletTerms(props) {
                         <div className="relative lg:order-last lg:col-span-5">
                             <figure className="mb-10">
                                 <h1 className="mt-2 mb-4 text-3xl font-bold tracking-tight text-goldt sm:text-3xl">
-                                    
                                     Privacy Policy
                                 </h1>
                                 <p className="text-gray-200 mb-3">
@@ -576,7 +660,14 @@ export default function PalletTerms(props) {
                                     you have any questions about this Privacy
                                     Policy and would like further information,
                                     please contact our Managing Director by
-                                    email <a href="mailto:pallets@gtls.com.au" className="text-goldt">imad@gtls.com.au</a>.
+                                    email{" "}
+                                    <a
+                                        href="mailto:pallets@gtls.com.au"
+                                        className="text-goldt"
+                                    >
+                                        imad@gtls.com.au
+                                    </a>
+                                    .
                                 </p>
                             </figure>
                         </div>

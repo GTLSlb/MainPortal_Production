@@ -36,6 +36,18 @@ Route::post('/upload', function (Request $request) {
     }
 });
 
+Route::post('/uploadlogo', function (Request $request) {
+    if ($request->hasFile('file')) {
+        $file = $request->file('file');
+        $fileName =time() . '_' . $file->getClientOriginalName();
+        $file->move(public_path('AppLogo'), $fileName);
+
+        return response()->json(['message' => 'File uploaded successfully','filename' => $fileName]);
+    } else {
+        return response()->json(['error' => 'No file uploaded'], 400);
+    }
+});
+
 Route::post('/uploadPO', function (Request $request) {
     if ($request->hasFile('file')) {
         $file = $request->file('file');

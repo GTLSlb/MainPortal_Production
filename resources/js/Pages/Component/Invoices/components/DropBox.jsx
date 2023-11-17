@@ -25,44 +25,43 @@ const DropBox = ({
 
     useEffect(() => {
         if (object) {
-            if(object.InvoiceDoc){
-            setExistedFiles(object.InvoiceDoc);
-            object.InvoiceDoc?.map((Doc) => {
-                fetch(`/Invoices/${Doc.DocName}`)
-                    .then((response) => response.blob())
-                    .then((blob) => {
-                        // Create a new File object from the blob and add it to selectedFiles
-                        const file = new File([blob], Doc.DocName);
-                        //   setExistedFiles((prevSelectedFiles) => [...prevSelectedFiles, file]);
-                        setSelectedFiles((prevSelectedFiles) => [
-                            ...prevSelectedFiles,
-                            file,
-                        ]);
-                    })
-                    .catch((error) => {
-                        console.error("Error fetching the file:", error);
-                    });
-            });
-        }
-        else if(object.PoDoc){
-            setExistedFiles(object.PoDoc);
-            object.PoDoc?.map((Doc) => {
-                fetch(`/POs/${Doc.DocName}`)
-                    .then((response) => response.blob())
-                    .then((blob) => {
-                        // Create a new File object from the blob and add it to selectedFiles
-                        const file = new File([blob], Doc.DocName);
-                        //   setExistedFiles((prevSelectedFiles) => [...prevSelectedFiles, file]);
-                        setSelectedFiles((prevSelectedFiles) => [
-                            ...prevSelectedFiles,
-                            file,
-                        ]);
-                    })
-                    .catch((error) => {
-                        console.error("Error fetching the file:", error);
-                    });
-            });
-        }
+            if (object.InvoiceDoc) {
+                setExistedFiles(object.InvoiceDoc);
+                object.InvoiceDoc?.map((Doc) => {
+                    fetch(`/Invoices/${Doc.DocName}`)
+                        .then((response) => response.blob())
+                        .then((blob) => {
+                            // Create a new File object from the blob and add it to selectedFiles
+                            const file = new File([blob], Doc.DocName);
+                            //   setExistedFiles((prevSelectedFiles) => [...prevSelectedFiles, file]);
+                            setSelectedFiles((prevSelectedFiles) => [
+                                ...prevSelectedFiles,
+                                file,
+                            ]);
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching the file:", error);
+                        });
+                });
+            } else if (object.PoDoc) {
+                setExistedFiles(object.PoDoc);
+                object.PoDoc?.map((Doc) => {
+                    fetch(`/POs/${Doc.DocName}`)
+                        .then((response) => response.blob())
+                        .then((blob) => {
+                            // Create a new File object from the blob and add it to selectedFiles
+                            const file = new File([blob], Doc.DocName);
+                            //   setExistedFiles((prevSelectedFiles) => [...prevSelectedFiles, file]);
+                            setSelectedFiles((prevSelectedFiles) => [
+                                ...prevSelectedFiles,
+                                file,
+                            ]);
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching the file:", error);
+                        });
+                });
+            }
         }
     }, []);
     const removeFile = (fileToRemove, event) => {
@@ -91,8 +90,8 @@ const DropBox = ({
         onDrop,
         multiple: true,
         accept: {
-            'application/pdf': ['.pdf'],
-          }
+            "application/pdf": [".pdf"],
+        },
     });
     return (
         <div>
@@ -111,10 +110,10 @@ const DropBox = ({
                                     <a
                                         href={`/${path}/${file.DocName}`}
                                         target="_blank"
-                                        className="text-blue-500 underline"
+                                        className="text-blue-500 underline w-50 max-w-xs truncate"
                                         rel="noopener noreferrer"
                                     >
-                                        <span>{file.DocName}</span>
+                                        <span className="">{file.DocName}</span>
                                     </a>
                                     <button
                                         onClick={(e) => removeFile(file, e)}
@@ -132,10 +131,12 @@ const DropBox = ({
                                         getFilePreviewURL(file)
                                         // `/Invoices/${file.name}`
                                     }
-                                    className="text-blue-500 underline"
+                                    className="text-blue-500 underline max-w-xs truncate"
                                     target="_blank"
                                 >
-                                    <span>{file.name}</span>
+                                    <span className="truncate">
+                                        {file.name}
+                                    </span>
                                 </a>
                                 <button
                                     onClick={(e) => removeFile(file, e)}
@@ -157,7 +158,9 @@ const DropBox = ({
                 <input {...getInputProps()} style={{ display: "none" }} />
 
                 <p className="text-center">
-                   {selectedFiles.length>0?"Select More":"Drag and drop files here, or click to select files"}
+                    {selectedFiles.length > 0
+                        ? "Select More"
+                        : "Drag and drop files here, or click to select files"}
                 </p>
             </div>
         </div>

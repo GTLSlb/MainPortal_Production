@@ -3,6 +3,7 @@ import haccp from "../../../assets/partners/haccp.webp";
 import JAIX from "../../../assets/partners/JAIX.webp";
 import nhvr from "../../../assets/partners/nhvr.webp";
 import hvac from "../../../assets/partners/hvac.webp";
+import navman from "../../../assets/partners/Navman-logo.webp";
 const features = [
     {
         name: "Sleek design",
@@ -45,33 +46,40 @@ export default function Technologies() {
                             />
                         </a>
                         <div className="max-w-2xl w-auto lg:max-w-7xl ">
-                            <div className="flex flex-row mt-10 gap-1 justify-between items-left ">
-                                <a href="https://www.nhvr.gov.au" target="_blank">
+                            <div className="flex flex-row mt-10 gap-2 justify-between items-left ">
+                                <a href="https://www.nhvr.gov.au/safety-accreditation-compliance/national-heavy-vehicle-accreditation-scheme" target="_blank">
                                     <img
                                         src={nhvr}
                                         alt="nhvr"
-                                        className="h-14 sm:h-20 w-auto"
+                                        className="h-14 sm:w-16 sm:h-16 "
                                     />
                                 </a>
                                 <a href="" target="_blank">
                                     <img
                                         src={hvac}
                                         alt="hvac"
-                                        className="h-14 sm:h-20 w-auto"
+                                        className="h-14 sm:w-16 sm:h-16 "
                                     />
                                 </a>
                                 <a href="https://www.sqfi.com" target="_blank">
                                     <img
                                         src={haccp}
                                         alt="haccp"
-                                        className="h-14 sm:h-20 w-auto"
+                                        className="h-14 sm:w-16 sm:h-16 "
                                     />
                                 </a>
                                 <a href="https://jaix.com.au" target="_blank">
                                     <img
                                         src={JAIX}
                                         alt="JAIX"
-                                        className="h-14 sm:h-20 w-auto"
+                                        className="h-14 sm:w-16 sm:h-16 "
+                                    />
+                                </a>
+                                <a href="https://www.navman.com.au/" target="_blank">
+                                    <img
+                                        src={navman}
+                                        alt="navman"
+                                        className="h-14 sm:w-16 sm:h-16 "
                                     />
                                 </a>
                             </div>

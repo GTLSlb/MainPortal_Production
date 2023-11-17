@@ -14,4 +14,7 @@ export default defineConfig({
             plugin: () => {}
         }
     ],
+    optimizeDeps: {
+        exclude: ['js-big-decimal']
+      }
 });

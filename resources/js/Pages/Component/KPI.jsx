@@ -133,8 +133,10 @@ export default function KPI({
             filterEndDate.setMinutes(59);
             filterEndDate.setHours(23);
             const receiverMatch = selectedConsignment
-                ? item.ConsignmentNo.includes(selectedConsignment)
-                : true; // Check if item's receiver name matches the selected receiver, or if no receiver is selected (return true to include all items)
+            ? item.ConsignmentNo.toLowerCase().includes(
+                  selectedConsignment.toLowerCase()
+              )
+            : true;
             return (
                 itemDate >= filterStartDate &&
                 itemDate <= filterEndDate &&

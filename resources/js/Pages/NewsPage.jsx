@@ -8,11 +8,16 @@ import device from "../assets/news/device.webp";
 import earth from "../assets/news/earth.webp";
 import safety from "..//assets/news/safety.webp";
 import track from "../assets/news/track.webp";
-import newSite from "../assets/news/newSite.webp"
+import newSite from "../assets/news/newSite.webp";
 import { useState, useRef, useEffect } from "react";
 import worker from "../assets/news/worker.webp";
 import goldt from "../assets/news/goldt.webp";
 import movers from "../assets/news/3movers.webp";
+import greennews from "../assets/news/greennews.webp";
+import weighbridge from "../assets/news/weighbridge.webp";
+import Navman from "../assets/news/Navman.webp";
+import weighbridgenews from "../assets/news/weighbridgenews.webp";
+import Navmannews from "../assets/news/Navmannews.webp";
 import { useParams } from "react-router-dom";
 import React from "react";
 import { usePage } from "@inertiajs/react";
@@ -195,7 +200,7 @@ export default function NewsPage(props) {
                 "Purpose-built transport hubs in Sydney and Brisbane are part of a $100-million business expansion now underway at Gold Tiger Logistic Solutions.",
 
             content2:
-                'In Sydney, Gold Tiger has purchased land in the west at Kemps Creek, just off the M7 Motorway and next door to Badgerys Creek, where Sydney’s second airport is now under construction. Gold Tiger will build a 35,000sqm transport and warehousing facility as its new national headquarters. It is expected to open early in 2024. The new hub will have the latest warehousing and logistics technology, lots of space for quick truck turnarounds, ample storage space and a full on-site mechanics’ workshop for day-to-day truck servicing. The new building will also be 100% powered by its own solar energy system. Gold Tiger’s current fully owned transport and warehousing headquarters in Ingleburn, about 25 kilometres from the new site, will continue to operate, meaning the new facility will provide a huge boost to Gold Tiger’s capabilities and capacities.\n \n In Brisbane, Gold Tiger has purchased  land at Crestmead, south of Brisbane in the City of Logan, with easy access to the Logan Motorway. The company will build a 15,000sqm transport and warehousing hub, which will replace a smaller rented facility in Richlands.The Brisbane hub will be a similar but scaled down version of the Sydney hub, including a solar energy system to meet all its electrical needs. The Brisbane hub is planned to open by the end of 2023.',
+                "In Sydney, Gold Tiger has purchased land in the west at Kemps Creek, just off the M7 Motorway and next door to Badgerys Creek, where Sydney’s second airport is now under construction. Gold Tiger will build a 35,000sqm transport and warehousing facility as its new national headquarters. It is expected to open early in 2024. The new hub will have the latest warehousing and logistics technology, lots of space for quick truck turnarounds, ample storage space and a full on-site mechanics’ workshop for day-to-day truck servicing. The new building will also be 100% powered by its own solar energy system. Gold Tiger’s current fully owned transport and warehousing headquarters in Ingleburn, about 25 kilometres from the new site, will continue to operate, meaning the new facility will provide a huge boost to Gold Tiger’s capabilities and capacities.\n \n In Brisbane, Gold Tiger has purchased  land at Crestmead, south of Brisbane in the City of Logan, with easy access to the Logan Motorway. The company will build a 15,000sqm transport and warehousing hub, which will replace a smaller rented facility in Richlands.The Brisbane hub will be a similar but scaled down version of the Sydney hub, including a solar energy system to meet all its electrical needs. The Brisbane hub is planned to open by the end of 2023.",
 
             imgUrl: trucks,
         },
@@ -297,17 +302,137 @@ export default function NewsPage(props) {
                 "The Volvo F16 incorporates the latest in Volvo technology with the latest D16 engine with up to 650 hp for Euro 6. The D16 engines are more efficient than ever – maximising the fuel efficiency of the vehicle while minimising emissions. The new Volvo vehicles incorporate Volvo’s Dynamic Steering System which enables the vehicle to maintain directional control and total stability even in the event of a high wind event – a perennial problem in the past with long distance trucks and causing abrupt and unexpected lane changes on interstate highways. The Dynamic Steering System also helps avoid skidding with its active steering/suspension management control function. Gold Tiger Logistics Solutions maintains a Gold Level Service Contract with Volvo Australia. This means that thanks to the vehicle’s built-in connectivity technology, Volvo can plan workshop visits according to driven mileage and the wear and tear of key components. Potential issues can be avoided before they occur. We will not be sitting on our laurels, however. This is all part of the Gold Tiger program to continue carrying the company forward by utilising the most modern and efficient technology available and thus continuing to be at the cutting edge of service provision to our customers.",
             imgUrl: movers,
         },
+        {
+            id: 11,
+            title: "GTLS Enhances Road Safety and Efficiency with Advanced Weighbridge Integration",
+            content1:
+                "Gold Tiger Logistics Solutions (GTLS) remains committed to the safety of all road users. As part of our ongoing safety innovation program, we take considerable pride in announcing a significant enhancement to our safety practices through the integration of two state-of-the-art weighbridge systems. The latest of these cutting-edge weighbridges, recently installed in the Sydney depot, complements the similar unit introduced last year in the Melbourne depot. Together, they enhance our dedication to setting the benchmark at no less than the industry accepted world’s best practice. With the introduction of this second weighbridge a remarkable 80% of all interstate linehaul movements are now undergoing thorough checks before departing from our depots and GTLS is therefore proactively taking measures to prevent overloaded vehicles from venturing onto Aussie roads.",
+
+            content2:
+                "This not only lightens the burden on our road infrastructure but also guarantees that all our vehicles operate within the legally prescribed weight limits.As a major component within our ongoing commitment, we have introduced these advanced weighbridge systems not only augmenting our capabilities but also revolutionizing the weighing process by automating it, thus eliminating human errors. It is the responsibility of Gold Tiger Logistics Solutions to ensure that our weighing procedures are robust enough to shield consumers from inaccuracies in product weight, thereby preserving their trust in our services.  Moreover, these systems also serve as invaluable tools for our internal documentation requirements. Both weighbridge systems now play pivotal roles in streamlining the management of incoming/ outgoing vehicles, significantly boosting overall operational efficiency. With the implementation of two advanced weighbridge systems, we eliminate the need for time-consuming reloads, ensuring that no time or effort is wasted, while passing on cost savings and maintaining DIFOT efficiency for consignments. An added benefit of these new weighbridges is their time-saving feature. They empower drivers to verify the vehicle's weight before leaving the depot, allowing them to adjust accordingly. This remarkable advancement expedites operations substantially and creates a higher degree of confidence from our drivers, assuring them that the vehicle they are operating complies fully with safety standards and is perfectly suited for its intended purpose. With the dual strength of these weighbridges, GTLS is better equipped than ever to uphold the highest standards of safety, compliance, and efficiency in the logistics industry.",
+            imgUrl: weighbridge,
+        },
+        {
+            id: 12,
+            title: "Maintaining the safety of your drivers is a primary concern to our organisation.",
+            content1:
+                "Gold Tiger Logistics solutions continues to maintain and develop best practice standards in all aspects of driver safety and constantly strives to ensure safety standards are both met and exceeded. A major focus in long distance transport safety is the issue of drivers’ fatigue. Utilising the latest technology as part of our safety and compliance processes, Gold Tiger has collaborated with Navman, one of the world’s most innovative companies in automotive technology and risk reduction. Reducing risk begins by acknowledging what constitutes good and bad driving behaviour. While producing valuable data and developing key performance indicators the utilisation of this 21st Century technology assists in mitigating driving risk. The introduction of Driver Scorecards ,Smart Dashcams and Digital Inspections are just some of the processes that have been developed from this line of research. At Gold Tiger we are developing a culture of safety to extend the life of your fleet as well. We are monitoring and assessing the signs of Risk-mitigating Driving Behaviour that includes the following: ",
+            list: [
+                {
+                    id: 0,
+                    title: "Signs of fatigue and pulling over to rest before continuing the journey",
+                },
+                {
+                    id: 1,
+                    title: "Adhering to speed limits, stop signs, and traffic signals.",
+                },
+                {
+                    id: 2,
+                    title: "Conducting pre- and post-trip vehicle inspections.",
+                },
+                {
+                    id: 3,
+                    title: "Using an app with an automated reply to tell people the driver will respond to their incoming text messages only when it is safe to do so.",
+                },
+                {
+                    id: 4,
+                    title: "Eating at established mealtimes while parked rather than trying to dine on the go.",
+                },
+                {
+                    id: 5,
+                    title: "Getting behind the wheel while fatigued or impaired.",
+                },
+                {
+                    id: 6,
+                    title: "Using a phone while driving.",
+                },
+                {
+                    id: 7,
+                    title: "Driving while angry or upset to the point of distraction.",
+                },
+                {
+                    id: 8,
+                    title: "Taking sudden and unpredictable actions such as lane changes and harsh braking.",
+                },
+            ],
+            content2:
+                "The accurate assessment of this data enables Gold Tiger to record and benchmark against driver data, based on their performance and view incidents in real-time with Safety Analytics that will positively impact future safety and compliance regulations implementation.",
+            imgUrl: Navman,
+        },
+        {
+            id: 13,
+            title: "Gold Tiger's Green Journey",
+            list: [
+                {
+                    id: 0,
+                    title: "Gold Tiger's Green Journey: Innovating with Harmony",
+                    content:
+                        "As we firmly pledge to eco-friendliness, join us on the road to a better future. We at Gold Tiger Group are a force for positive change rather than just a logistics provider.",
+                },
+                {
+                    id: 1,
+                    title: "Setting Our Sights on Net-Zero Emissions",
+                    content:
+                        "By 2030, we want to achieve net-zero emissions throughout the whole GTLS supply chain. We support establishing goals based on convincing evidence, plausible predictions of future levels of success, and knowledge of emerging technologies. Of course, the goal is to make this vision a reality.",
+                },
+                {
+                    id: 2,
+                    title: "The Volvo FH Electric: Setting the Standard for Sustainability",
+                    content:
+                        "One of our key initiatives is the integration of the Volvo FH Electric, a truck with the capability of meeting our ambitious sustainability goals. This remarkable vehicle boasts a colossal power of up to 490 kW/666 hp, driven by a unique traction control system. It can carry up to 44 tonnes GCW and cover distances of up to 300 km - all while leaving a significantly smaller carbon footprint.",
+                },
+                {
+                    id: 3,
+                    title: "Direct Experience with Excellence",
+                    content:
+                        "We actually live up to our words rather than just talking the talk. Attending a live demonstration displaying the excellent performance of the Volvo Electric Truck was an honour for Gold Tiger Group. This experience strengthened our dedication to environmentally friendly logistics.",
+                },
+                {
+                    id: 4,
+                    title: "A Forward-Looking Step",
+                    content:
+                        "More than just a commercial choice, adding Volvo electric trucks to our fleet is a move towards a more sustainable future. Our association with Volvo extends beyond the Primemover itself. Our efforts are supported by cutting-edge assistance thanks to the Volvo Gold repair Contract, which includes battery monitoring, secure uptime, and predictive repair planning.",
+                },
+                {
+                    id: 5,
+                    title: "Creating the Future Together with Volvo",
+                    content:
+                        "In the near future, Gold Tiger Group plans to deploy a fleet of Volvo electric trucks. As part of our partnership with Volvo, we are also researching ways to maximise the truck's range so that we can lead the way in environmentally friendly logistics.",
+                },
+            ],
+            content2:
+                "We are aware of the seriousness of our obligation to make our clients' supply chains more sustainable. The broad use of solar panels is one of our core green business tactics. We are adamant that getting the best results requires patience and a firm dedication to the intended goals. With this knowledge, we're committed to looking for new, environmentally responsible solutions to improve our logistical processes and lessen their negative effects on the environment. We at Gold Tiger Group are leading an environmentally conscious revolution in the business, going beyond simply rethinking logistics. Join us on this thrilling adventure as we work to create a greener, more responsible future.",
+            imgUrl: greennews,
+        },
     ];
 
     const posts = [
         {
-            id: 0,
-            title: "Fleet boosted by 25 Volvo Euro 6 prime movers",
+            id: 13,
+            title: "Gold Tiger's Green Journey",
             href: "#",
             description:
-                "Gold Tiger Logistic Solutions has added 25 new prime movers and trailers to its transport fleet, taking the total to",
-            imageUrl: postpic,
-            date: "October 31, 2022",
+                "Gold Tiger's Green Journey: Innovating with Harmony. As we firmly pledge to eco-friendliness, join us on the road to a better future. We at Gold Tiger Group are a force for positive change rather than just a logistics provider.",
+            imageUrl: greennews,
+            date: "October 24, 2023",
+            datetime: "2023-10-24",
+            category: { title: "", href: "#" },
+            author: {
+                name: "Michael Foster",
+                role: "Co-Founder / CTO",
+                href: "#",
+                imageUrl:
+                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            },
+        },
+        {
+            id: 12,
+            title: "Maintaining the safety of your drivers is a primary concern to our organisation",
+            href: "#",
+            description:
+                "Gold Tiger Logistics solutions continues to maintain and develop best practice standards in all aspects of driver safety and constantly strives to ensure safety standards are both met and exceeded. A major focus in long distance transport safety is the issue of drivers’ fatigue. Utilising the latest technology as part of our safety and compliance processes, Gold Tiger has collaborated with Navman, one of the world’s most innovative companies in automotive technology and risk reduction.",
+            imageUrl: Navmannews,
+            date: "September 19, 2023",
             datetime: "2020-03-16",
             category: { title: "", href: "#" },
             author: {
@@ -319,13 +444,13 @@ export default function NewsPage(props) {
             },
         },
         {
-            id: 1,
-            title: "Gold Tiger in $100m business expansion",
+            id: 11,
+            title: "GTLS Enhances Road Safety and Efficiency with Advanced Weighbridge Integration",
             href: "#",
             description:
-                "Purpose-built transport hubs in Sydney and Brisbane are part of a $100-million business expansion now underway at Gold Tiger Logistic",
-            imageUrl: trucks,
-            date: "October 13, 2022",
+                "Gold Tiger Logistics Solutions (GTLS) remains committed to the safety of all road users. As part of our ongoing safety innovation program, we take considerable pride in announcing a significant enhancement to our safety practices through the integration of two state-of-the-art weighbridge systems. ",
+            imageUrl: weighbridgenews,
+            date: "September 19, 2023",
             datetime: "2020-03-16",
             category: { title: "", href: "#" },
             author: {
@@ -337,13 +462,13 @@ export default function NewsPage(props) {
             },
         },
         {
-            id: 2,
-            title: "TC8300 Touch Computer implementation",
+            id: 10,
+            title: "Gold Tiger Logistics Solutions Continues advancement with three new volvo F16 prime movers",
             href: "#",
             description:
-                "Gold Tiger Logistics Solutions, an Australian logistics company, revolutionised their business three years ago by implementing a cutting-edge product scanning system.",
-            imageUrl: tcapp,
-            date: "April 19, 2023",
+                "Gold Tiger Logistics Solutions has, this week taken delivery of three new Volvo F16 (Euro 6) prime movers as part of its continuing commitment to constantly modernising and upgrading the fleet. Gold Tiger has used Volvo equipment since the company was formed in 2006 and the partnership has gone from strength to strength over the years.",
+            imageUrl: movers,
+            date: "June 2, 2023",
             datetime: "2020-03-16",
             category: { title: "", href: "#" },
             author: {
@@ -355,84 +480,12 @@ export default function NewsPage(props) {
             },
         },
         {
-            id: 3,
-            title: "Vehicle Tracking",
+            id: 9,
+            title: "Gold Tiger Logistics Solutions: Unveiling exciting developments and expanding operations",
             href: "#",
             description:
-                "Gold Tiger Logistics Solutions, a company in the transportation and logistics industry, has recently adopted three cutting-edge technologies to improve its operations. Firstly, the VT102",
-            imageUrl: track,
-            date: "April 19, 2023",
-            datetime: "2020-03-16",
-            category: { title: "", href: "#" },
-            author: {
-                name: "Michael Foster",
-                role: "Co-Founder / CTO",
-                href: "#",
-                imageUrl:
-                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-            },
-        },
-        {
-            id: 4,
-            title: "Driver PDA’s",
-            href: "#",
-            description:
-                "Gold Tiger Logistics Solution, a prominent logistics company, is making waves with its purchase of product – Zebra TX57 PDA’s. The company’s purchase has revolutionized",
-            imageUrl: device,
-            date: "April 19, 2023",
-            datetime: "2020-03-16",
-            category: { title: "", href: "#" },
-            author: {
-                name: "Michael Foster",
-                role: "Co-Founder / CTO",
-                href: "#",
-                imageUrl:
-                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-            },
-        },
-        {
-            id: 5,
-            title: "GTLS Expansion",
-            href: "#",
-            description:
-                "As part of the GTLS expansion a greenfield site has been purchased within the Ingleburn Industrial Estate. This is stage 1 in a major investment",
-            imageUrl: goldt,
-            date: "April 19, 2023",
-            datetime: "2020-03-16",
-            category: { title: "", href: "#" },
-            author: {
-                name: "Michael Foster",
-                role: "Co-Founder / CTO",
-                href: "#",
-                imageUrl:
-                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-            },
-        },
-        {
-            id: 6,
-            title: "Gold Tiger Logistics Solutions completes Fibre internet upgrade across all sites",
-            href: "#",
-            description:
-                "Gold Tiger Logistics Solutions has announced the completion of its internet upgrade, bringing fibre internet to all of its sites. The upgrade is expected to",
-            imageUrl: earth,
-            date: "April 19, 2023",
-            datetime: "2020-03-16",
-            category: { title: "", href: "#" },
-            author: {
-                name: "Michael Foster",
-                role: "Co-Founder / CTO",
-                href: "#",
-                imageUrl:
-                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-            },
-        },
-        {
-            id: 7,
-            title: "Gold Tiger Logistics Solutions Adopts State-of-the-Art Software to Enhance Staff Safety and Compliance",
-            href: "#",
-            description:
-                "Gold Tiger Logistics Solutions, a leading logistics and transportation company, has announced the adoption of a new cloud-based software platform to enhance staff safety and",
-            imageUrl: safety,
+                "Gold Tiger Logistics Solutions and their group of companies are making strides towards expanding their operations with several exciting developments underway.",
+            imageUrl: newSite,
             date: "April 19, 2023",
             datetime: "2020-03-16",
             category: { title: "", href: "#" },
@@ -463,12 +516,12 @@ export default function NewsPage(props) {
             },
         },
         {
-            id: 9,
-            title: "Gold Tiger Logistics Solutions: Unveiling exciting developments and expanding operations",
+            id: 7,
+            title: "Gold Tiger Logistics Solutions Adopts State-of-the-Art Software to Enhance Staff Safety and Compliance",
             href: "#",
             description:
-                "Gold Tiger Logistics Solutions and their group of companies are making strides towards expanding their operations with several exciting developments underway.",
-            imageUrl: newSite,
+                "Gold Tiger Logistics Solutions, a leading logistics and transportation company, has announced the adoption of a new cloud-based software platform to enhance staff safety and",
+            imageUrl: safety,
             date: "April 19, 2023",
             datetime: "2020-03-16",
             category: { title: "", href: "#" },
@@ -481,13 +534,13 @@ export default function NewsPage(props) {
             },
         },
         {
-            id: 10,
-            title: "Gold Tiger Logistics Solutions Continues advancement with three new volvo F16 prime movers",
+            id: 6,
+            title: "Gold Tiger Logistics Solutions completes Fibre internet upgrade across all sites",
             href: "#",
             description:
-                "Gold Tiger Logistics Solutions has, this week taken delivery of three new Volvo F16 (Euro 6) prime movers as part of its continuing commitment to constantly modernising and upgrading the fleet. Gold Tiger has used Volvo equipment since the company was formed in 2006 and the partnership has gone from strength to strength over the years.",
-            imageUrl: movers,
-            date: "June 2, 2023",
+                "Gold Tiger Logistics Solutions has announced the completion of its internet upgrade, bringing fibre internet to all of its sites. The upgrade is expected to",
+            imageUrl: earth,
+            date: "April 19, 2023",
             datetime: "2020-03-16",
             category: { title: "", href: "#" },
             author: {
@@ -498,7 +551,115 @@ export default function NewsPage(props) {
                     "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
             },
         },
-    
+        {
+            id: 5,
+            title: "GTLS Expansion",
+            href: "#",
+            description:
+                "As part of the GTLS expansion a greenfield site has been purchased within the Ingleburn Industrial Estate. This is stage 1 in a major investment",
+            imageUrl: goldt,
+            date: "April 19, 2023",
+            datetime: "2020-03-16",
+            category: { title: "", href: "#" },
+            author: {
+                name: "Michael Foster",
+                role: "Co-Founder / CTO",
+                href: "#",
+                imageUrl:
+                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            },
+        },
+        {
+            id: 4,
+            title: "Driver PDA’s",
+            href: "#",
+            description:
+                "Gold Tiger Logistics Solution, a prominent logistics company, is making waves with its purchase of product – Zebra TX57 PDA’s. The company’s purchase has revolutionized",
+            imageUrl: device,
+            date: "April 19, 2023",
+            datetime: "2020-03-16",
+            category: { title: "", href: "#" },
+            author: {
+                name: "Michael Foster",
+                role: "Co-Founder / CTO",
+                href: "#",
+                imageUrl:
+                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            },
+        },
+        {
+            id: 3,
+            title: "Vehicle Tracking",
+            href: "#",
+            description:
+                "Gold Tiger Logistics Solutions, a company in the transportation and logistics industry, has recently adopted three cutting-edge technologies to improve its operations. Firstly, the VT102",
+            imageUrl: track,
+            date: "April 19, 2023",
+            datetime: "2020-03-16",
+            category: { title: "", href: "#" },
+            author: {
+                name: "Michael Foster",
+                role: "Co-Founder / CTO",
+                href: "#",
+                imageUrl:
+                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            },
+        },
+        {
+            id: 2,
+            title: "TC8300 Touch Computer implementation",
+            href: "#",
+            description:
+                "Gold Tiger Logistics Solutions, an Australian logistics company, revolutionised their business three years ago by implementing a cutting-edge product scanning system.",
+            imageUrl: tcapp,
+            date: "April 19, 2023",
+            datetime: "2020-03-16",
+            category: { title: "", href: "#" },
+            author: {
+                name: "Michael Foster",
+                role: "Co-Founder / CTO",
+                href: "#",
+                imageUrl:
+                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            },
+        },
+        {
+            id: 1,
+            title: "Gold Tiger in $100m business expansion",
+            href: "#",
+            description:
+                "Purpose-built transport hubs in Sydney and Brisbane are part of a $100-million business expansion now underway at Gold Tiger Logistic",
+            imageUrl: trucks,
+            date: "October 13, 2022",
+            datetime: "2020-03-16",
+            category: { title: "", href: "#" },
+            author: {
+                name: "Michael Foster",
+                role: "Co-Founder / CTO",
+                href: "#",
+                imageUrl:
+                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            },
+        },
+        {
+            id: 0,
+            title: "Fleet boosted by 25 Volvo Euro 6 prime movers",
+            href: "#",
+            description:
+                "Gold Tiger Logistic Solutions has added 25 new prime movers and trailers to its transport fleet, taking the total to",
+            imageUrl: postpic,
+            date: "October 31, 2022",
+            datetime: "2020-03-16",
+            category: { title: "", href: "#" },
+            author: {
+                name: "Michael Foster",
+                role: "Co-Founder / CTO",
+                href: "#",
+                imageUrl:
+                    "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            },
+        },
+
         // More posts...
     ];
 
@@ -512,15 +673,25 @@ export default function NewsPage(props) {
             <div className="relative isolate bg-dark">
                 <Navbars />
                 {/* <HeroSection/> */}
-
-                <div aria-hidden="true" className="relative">
-                    <img
-                        src={contentJson[id].imgUrl}
-                        alt="news"
-                        className="h-96 w-full object-cover  "
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark" />
-                </div>
+                {id == 12 ? (
+                    <div aria-hidden="true" className="relative">
+                        <img
+                            src={contentJson[id].imgUrl}
+                            alt="news"
+                            className="h-[40rem] w-full object-cover  "
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-dark" />
+                    </div>
+                ) : (
+                    <div aria-hidden="true" className="relative">
+                        <img
+                            src={contentJson[id].imgUrl}
+                            alt="news"
+                            className="h-96 w-full object-cover  "
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-dark" />
+                    </div>
+                )}
 
                 <div className="bg-dark pb-10 px-6 lg:px-8">
                     <div className="mx-auto max-w-3xl text-base leading-7 text-gray-700">
@@ -539,11 +710,37 @@ export default function NewsPage(props) {
                             <h1 className="mt-2 text-3xl font-bold tracking-tight text-goldt sm:text-4xl">
                                 {contentJson[id].title}
                             </h1>
-                            <p className="mt-6 text-xl leading-8 text-gray-200">
+                            <p className="mt-6 text-lg leading-8 text-gray-200 text-justify">
                                 {contentJson[id].content1}
                             </p>
-                            <div className="mt-10 text-lg max-w-2xl text-gray-300">
-                                <p style={{ whiteSpace: 'pre-line' }}>{contentJson[id].content2}</p>
+                            {contentJson[id].list ? (
+                                <ol className="p-5">
+                                    {contentJson[id].list?.map((item) => (
+                                        <li
+                                            key={item.id}
+                                            className="flex gap-x-3 "
+                                        >
+                                            <div className=" h-2 w-2 mt-2 flex-none rounded-full bg-goldt" />
+                                            <div>
+                                                <span className="text-smooth">
+                                                    {item.title}
+                                                </span>
+                                                {item.content ? (
+                                                    <div className="text-gray-200">{item.content}</div>
+                                                ) : null}
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ol>
+                            ) : null}
+
+                            <div className="mt-10 text-lg  text-gray-200 text-justify">
+                                <p
+                                    style={{ whiteSpace: "pre-line" }}
+                                    className="w-full"
+                                >
+                                    {contentJson[id].content2}
+                                </p>
                             </div>
                             <figure className="mt-16">
                                 <img

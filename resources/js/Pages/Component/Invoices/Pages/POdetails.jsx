@@ -9,6 +9,8 @@ import {
 import DropBox from "../components/DropBox";
 import moment from "moment";
 import { useEffect } from "react";
+import * as signalR from "@microsoft/signalr";
+import * as signalRCore from "@microsoft/signalr";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
@@ -21,6 +23,7 @@ export default function POdetails({
     closeReasons,
     AlertToast,
     PODetails,
+    setPODetails,
     supplierData,
     POBack,
     companies,
@@ -28,14 +31,48 @@ export default function POdetails({
     currentUser,
     getPOs,
     getInvoices,
+    hubConnection,
+    invoices,
 }) {
+    
     const [processedData, setProcessedData] = useState([]);
     const [isLoading, SetIsLoading] = useState(false);
     const [isLoadingApprove, SetIsLoadingApprove] = useState(false);
     const [createdby, setCreatedBy] = useState();
-    axios.get(`/findUserById/${PODetails.AddedBy}`).then((res) => {
+    axios.get(`/findUserById/${PODetails?.AddedBy}`).then((res) => {
         setCreatedBy(res.data.user_name);
     });
+    useEffect(() => {
+        getPObyId(PODetails.PoId);
+    }, []);
+    useEffect(() => {
+        authorizeToEditReject();
+        setauthorizeToEditApprove(authorityToEditApprove());
+        setauthorizeToConvert(authorityToConvert());
+    }, [PODetails]);
+    function getPObyId(POId) {
+        axios
+            .get(`${url}api/GTIS/POs`, {
+                headers: {
+                    UserId: currentUser.user_id,
+                    PO_Id: POId,
+                },
+            })
+            .then((res) => {
+                const x = JSON.stringify(res.data);
+                const parsedDataPromise = new Promise((resolve, reject) => {
+                    const parsedData = JSON.parse(x);
+                    resolve(parsedData);
+                });
+                parsedDataPromise.then((parsedData) => {
+                    setPODetails(parsedData[0]);
+                    setActiveIndexInv(9);
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
     const searchUserByName = async (userId) => {
         try {
             const response = await axios.get(`/findUserById/${userId}`);
@@ -52,6 +89,27 @@ export default function POdetails({
             return false;
         }
     }
+    function convertUtcToUserTimezone(utcDateString) {
+        // Create a Date object from the UTC date string
+        const utcDate = new Date(utcDateString);
+        
+        // Get the current user's timezone
+        const targetTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+        const formatter = new Intl.DateTimeFormat("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            timeZone: targetTimezone,
+        });
+    
+        const convertedDate = formatter.format(utcDate);
+        return convertedDate;
+    }
+    
     useEffect(() => {
         const fetchLogsAndReplaceData = async () => {
             try {
@@ -74,13 +132,16 @@ export default function POdetails({
                 const processedData = await Promise.all(
                     logsData.map(async (item) => {
                         const newItem = { ...item };
-
                         if (item.CreatedBy) {
                             newItem.CreatedBy = await searchUserByName(
                                 item.CreatedBy
                             );
                         }
-
+                        if (item.CreatedAt) {
+                            newItem.CreatedAt = convertUtcToUserTimezone(
+                                item.CreatedAt + "Z"
+                            );
+                        }
                         if (item.Approval) {
                             newItem.Approval = await Promise.all(
                                 item.Approval.map(async (approval) => {
@@ -88,6 +149,12 @@ export default function POdetails({
                                         approval.ApprovedBy =
                                             await searchUserByName(
                                                 approval.ApprovedBy
+                                            );
+                                    }
+                                    if (approval.ApprovedAt) {
+                                        approval.ApprovedAt =
+                                            convertUtcToUserTimezone(
+                                                approval.ApprovedAt + "Z"
                                             );
                                     }
                                     return approval;
@@ -102,6 +169,12 @@ export default function POdetails({
                                         match.AddedBy = await searchUserByName(
                                             match.AddedBy
                                         );
+                                    }
+                                    if (match.AddedAt) {
+                                        match.AddedAt =
+                                            convertUtcToUserTimezone(
+                                                match.AddedAt + "Z"
+                                            );
                                     }
                                     return match;
                                 })
@@ -138,7 +211,7 @@ export default function POdetails({
         setActiveIndexInv(POBack);
     }
     function authorizeToEditReject() {
-        if (currentUser.role_id == 6) {
+        if (currentUser.role_id == 6 || currentUser.role_id == 9) {
             // If State Manager
             if (PODetails.SecondApproval == 1) {
                 // if there's no second approval or rejection
@@ -173,7 +246,7 @@ export default function POdetails({
         }
     }
     function authorityToEditApprove() {
-        if (currentUser.role_id == 6) {
+        if (currentUser.role_id == 6 || currentUser.role_id == 9) {
             // if state manager
             if (PODetails.SecondApproval == 2) {
                 //if second Approved Already
@@ -285,7 +358,7 @@ export default function POdetails({
         }
     }
     const handleConverToInvoice = () => {
-        SetIsLoading(true)
+        SetIsLoading(true);
         // defineApprovalStatus();
         existedFiles.map((file) => {
             filenamesArray.push({
@@ -316,7 +389,16 @@ export default function POdetails({
             InvoiceDoc: filenamesArray,
             AddedBy: currentUser.user_id,
         };
-
+        const duplicateInvoice = invoices.find(
+            (invoice) =>
+                invoice.InvoiceNo === inputValues.InvoiceNo &&
+                invoice.SupplierId === PODetails.SupplierId
+        );
+        if (duplicateInvoice) {
+            SetIsLoading(false);
+            AlertToast("An Invoice # for the same supplier already exist", 2);
+            return;
+        }
         axios
             .post(`${url}api/GTIS/MatchInvoice`, inputValues, {
                 headers: {
@@ -329,7 +411,7 @@ export default function POdetails({
                 setActiveIndexInv(2);
                 getInvoices();
                 getPOs();
-                SetIsLoading(false)
+                SetIsLoading(false);
                 const fileNamesToDelete = existedFiles
                     .filter((file) => file.DocStatus === 2)
                     .map((file) => file.DocName);
@@ -337,7 +419,7 @@ export default function POdetails({
             })
             .catch((err) => {
                 console.log(err);
-                SetIsLoading(false)
+                SetIsLoading(false);
                 AlertToast("Error please try again.", 2);
             });
     };
@@ -367,7 +449,8 @@ export default function POdetails({
         }
     }
     function ApprovePO(status) {
-        SetIsLoadingApprove(true)
+        SetIsLoadingApprove(true);
+        toApprove={OwnerId:PODetails?.PoId}
         let type = 0;
         if (currentUser.role_id == 10) {
             type = 2;
@@ -377,7 +460,7 @@ export default function POdetails({
         const inputValues = {
             ApprovalModel: 2,
             ApprovalType: type,
-            MainId: PODetails?.PoId,
+            MainId:toApprove ,
             StatusId: status,
             AddedBy: currentUser.user_id,
         };
@@ -389,18 +472,27 @@ export default function POdetails({
                 },
             })
             .then((res) => {
+                getPOs();
                 if (status == 2) {
                     AlertToast("Approved Successfully", 1);
                 } else if (status == 3) {
                     AlertToast("Rejected Successfully", 1);
                 }
                 setActiveIndexInv(2);
-                isLoadingApprove(false)
-                getPOs();
+                SetIsLoadingApprove(false);
+                if (
+                    hubConnection &&
+                    hubConnection.state === signalR.HubConnectionState.Connected
+                ) {
+                    hubConnection
+                        .invoke("SendNotification", res.data)
+                        .catch((error) => {
+                            console.error("Error sending notification:", error);
+                        });
+                }
             })
             .catch((err) => {
-                isLoadingApprove(false)
-                console.log(err);
+                SetIsLoadingApprove(false);
                 AlertToast("Error please try again.", 2);
             });
     }
@@ -427,13 +519,14 @@ export default function POdetails({
             });
     }
     const validateForm = (e) => {
-        e.preventDefault()
+        e.preventDefault();
         if (invoiceNo === "" || invoiceDate === "" || dueDate === "") {
             AlertToast("Please fill in all required fields !", 2);
         } else {
             handleFileUpload();
         }
     };
+
     if (authorizeToConvert) {
         return (
             <div className="bg-smooth">
@@ -575,7 +668,7 @@ export default function POdetails({
                                         <a
                                             href={`/POs/${file.DocName}`}
                                             target="_blank"
-                                            className="text-blue-500 underline"
+                                            className="text-blue-500 underline truncate"
                                             rel="noopener noreferrer"
                                         >
                                             <span>{file.DocName}</span>
@@ -788,213 +881,219 @@ export default function POdetails({
                     {authorizeToConvert ? (
                         <div className="rounded-xl bg-white shadow p-5">
                             <form onSubmit={validateForm}>
-                            <h1 className="text-dark font-bold text-2xl">
-                                Convert to Invoice
-                            </h1>
-                            <div className="grid grid-cols-2 p-2 gap-y-2 mt-5 text-sm sm:text-base">
-                                <h1 className="text-gray-400 border-b">
-                                    State:
+                                <h1 className="text-dark font-bold text-2xl">
+                                    Convert to Invoice
                                 </h1>
-                                <div className="pb-2 border-b">
-                                    {
-                                        states?.find(
-                                            (state) =>
-                                                state.StateId ===
-                                                PODetails.StateId
-                                        )?.StateCode
-                                    }
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Supplier:
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    {
-                                        supplierData?.find(
-                                            (supplier) =>
-                                                supplier.SupplierId ===
-                                                PODetails.SupplierId
-                                        )?.SupplierName
-                                    }
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Company:
-                                </h1>
-                                <div className="pb-2 w-full border-b">
-                                    {
-                                        companies?.find(
-                                            (company) =>
-                                                company.CompanyId ===
-                                                PODetails.CompanyId
-                                        )?.CompanyName
-                                    }
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Category:
-                                </h1>
-                                <div className="pb-2 w-full border-b">
-                                    {
-                                        categories?.find(
-                                            (category) =>
-                                                category.CategoryId ===
-                                                PODetails.CategoryId
-                                        )?.CategoryName
-                                    }
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Invoice #:{" "}
-                                    <span className="text-red-500">*</span>
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    <input
-                                        type="text"
-                                        required
-                                        id="InvoiceNo"
-                                        onChange={(e) => {
-                                            setInvoiceNo(e.target.value);
-                                        }}
-                                        className="rounded w-full h-7 border-gray-200 focus:border-0 focus:ring focus:ring-goldt"
-                                    />
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Invoice Date:{" "}
-                                    <span className="text-red-500">*</span>
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    <input
-                                        type="date"
-                                        required
-                                        id="InvoiceDate"
-                                        name="to-date"
-                                        onChange={(e) => {
-                                            setInvoiceDate(e.target.value);
-                                        }}
-                                        className="block w-full max-w-lg h-[25px]  rounded-md border-0 py-1.5 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                                    />
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Due Date:{" "}
-                                    <span className="text-red-500">*</span>
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    <input
-                                        type="date"
-                                        name="to-date"
-                                        required
-                                        id="DueDate"
-                                        onChange={(e) => {
-                                            setDueDate(e.target.value);
-                                        }}
-                                        className="block w-full max-w-lg h-[25px]  rounded-md border-0 py-1.5 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                                    />
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Description:
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    {PODetails.Description}
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Amount:
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    {PODetails.Amount}
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    Payment Type:
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    <select
-                                        id="PaymentTypeId"
-                                        defaultValue={paymentType}
-                                        onChange={determinePaymentStatus}
-                                        className="runded w-full border-gray-200 border-1 f focus:ring focus:ring-goldt"
-                                    >
-                                        <option value="2">Cash</option>
-                                        <option value="1">Credit Card</option>
-                                    </select>
-                                </div>
-                                {!paymentField ? (
+                                <div className="grid grid-cols-2 p-2 gap-y-2 mt-5 text-sm sm:text-base">
                                     <h1 className="text-gray-400 border-b">
-                                        Processed Bank:{" "}
-                                    <span className="text-red-500">*</span>
+                                        State:
                                     </h1>
-                                ) : null}
-                                {!paymentField ? (
+                                    <div className="pb-2 border-b">
+                                        {
+                                            states?.find(
+                                                (state) =>
+                                                    state.StateId ===
+                                                    PODetails.StateId
+                                            )?.StateCode
+                                        }
+                                    </div>
+                                    <h1 className="text-gray-400 border-b">
+                                        Supplier:
+                                    </h1>
+                                    <div className="pb-2 border-b">
+                                        {
+                                            supplierData?.find(
+                                                (supplier) =>
+                                                    supplier.SupplierId ===
+                                                    PODetails.SupplierId
+                                            )?.SupplierName
+                                        }
+                                    </div>
+                                    <h1 className="text-gray-400 border-b">
+                                        Company:
+                                    </h1>
+                                    <div className="pb-2 w-full border-b">
+                                        {
+                                            companies?.find(
+                                                (company) =>
+                                                    company.CompanyId ===
+                                                    PODetails.CompanyId
+                                            )?.CompanyName
+                                        }
+                                    </div>
+                                    <h1 className="text-gray-400 border-b">
+                                        Category:
+                                    </h1>
+                                    <div className="pb-2 w-full border-b">
+                                        {
+                                            categories?.find(
+                                                (category) =>
+                                                    category.CategoryId ===
+                                                    PODetails.CategoryId
+                                            )?.CategoryName
+                                        }
+                                    </div>
+                                    <h1 className="text-gray-400 border-b">
+                                        Invoice #:{" "}
+                                        <span className="text-red-500">*</span>
+                                    </h1>
                                     <div className="pb-2 border-b">
                                         <input
                                             type="text"
                                             required
-                                            id="ProcessedBank"
+                                            id="InvoiceNo"
+                                            onChange={(e) => {
+                                                setInvoiceNo(e.target.value);
+                                            }}
                                             className="rounded w-full h-7 border-gray-200 focus:border-0 focus:ring focus:ring-goldt"
                                         />
                                     </div>
-                                ) : null}
-                                {!paymentField ? (
                                     <h1 className="text-gray-400 border-b">
-                                        Payment Date:{" "}
-                                    <span className="text-red-500">*</span>
+                                        Invoice Date:{" "}
+                                        <span className="text-red-500">*</span>
                                     </h1>
-                                ) : null}
-                                {!paymentField ? (
                                     <div className="pb-2 border-b">
                                         <input
                                             type="date"
                                             required
-                                            id="PaymentDate"
+                                            id="InvoiceDate"
                                             name="to-date"
+                                            onChange={(e) => {
+                                                setInvoiceDate(e.target.value);
+                                            }}
                                             className="block w-full max-w-lg h-[25px]  rounded-md border-0 py-1.5 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
                                         />
                                     </div>
-                                ) : null}
-                                <h1 className="text-gray-400 border-b">
-                                    POD Required:
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    <input
-                                        type="checkbox"
-                                        id="PodRequired"
-                                        className="rounded text-green-500 focus:ring-green-300"
-                                    />
-                                </div>
-                                <h1 className="text-gray-400 border-b">
-                                    File:
-                                </h1>
-                                <div className="pb-2 border-b">
-                                    <DropBox
-                                        selectedFiles={selectedFiles}
-                                        setSelectedFiles={setSelectedFiles}
-                                        existedFile={existedFiles}
-                                        setExistedFiles={setExistedFiles}
-                                        newFiles={newFiles}
-                                        setNewFiles={setNewFiles}
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex justify-end w-full gap-x-2">
-                                {
-                                    <div className="">
-                                        {" "}
-                                        {authorizeToConvert ? (
-                                            <div className="flex justify-end w-full gap-x-2">
-                                                <InvoicesButton
-                                                    type={"submit"}
-                                                    name={
-                                                        isLoading ? (
-                                                            <div className=" inset-0 flex justify-center items-center bg-opacity-50">
-                                                                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-smooth"></div>
-                                                            </div>
-                                                        ) : (
-                                                            "Convert"
-                                                        )
-                                                    }
-                                                    disabled={isLoading}
-                                                    // onClick={validateForm}
-                                                />
-                                            </div>
-                                        ) : null}
+                                    <h1 className="text-gray-400 border-b">
+                                        Due Date:{" "}
+                                        <span className="text-red-500">*</span>
+                                    </h1>
+                                    <div className="pb-2 border-b">
+                                        <input
+                                            type="date"
+                                            name="to-date"
+                                            required
+                                            id="DueDate"
+                                            onChange={(e) => {
+                                                setDueDate(e.target.value);
+                                            }}
+                                            className="block w-full max-w-lg h-[25px]  rounded-md border-0 py-1.5 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                                        />
                                     </div>
-                                }
-                            </div>
+                                    <h1 className="text-gray-400 border-b">
+                                        Description:
+                                    </h1>
+                                    <div className="pb-2 border-b">
+                                        {PODetails.Description}
+                                    </div>
+                                    <h1 className="text-gray-400 border-b">
+                                        Amount:
+                                    </h1>
+                                    <div className="pb-2 border-b">
+                                        {PODetails.Amount}
+                                    </div>
+                                    <h1 className="text-gray-400 border-b">
+                                        Payment Type:
+                                    </h1>
+                                    <div className="pb-2 border-b">
+                                        <select
+                                            id="PaymentTypeId"
+                                            defaultValue={paymentType}
+                                            onChange={determinePaymentStatus}
+                                            className="runded w-full border-gray-200 border-1 f focus:ring focus:ring-goldt"
+                                        >
+                                            <option value="2">Cash</option>
+                                            <option value="1">
+                                                Credit Card
+                                            </option>
+                                        </select>
+                                    </div>
+                                    {!paymentField ? (
+                                        <h1 className="text-gray-400 border-b">
+                                            Processed Bank:{" "}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                        </h1>
+                                    ) : null}
+                                    {!paymentField ? (
+                                        <div className="pb-2 border-b">
+                                            <input
+                                                type="text"
+                                                required
+                                                id="ProcessedBank"
+                                                className="rounded w-full h-7 border-gray-200 focus:border-0 focus:ring focus:ring-goldt"
+                                            />
+                                        </div>
+                                    ) : null}
+                                    {!paymentField ? (
+                                        <h1 className="text-gray-400 border-b">
+                                            Payment Date:{" "}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                        </h1>
+                                    ) : null}
+                                    {!paymentField ? (
+                                        <div className="pb-2 border-b">
+                                            <input
+                                                type="date"
+                                                required
+                                                id="PaymentDate"
+                                                name="to-date"
+                                                className="block w-full max-w-lg h-[25px]  rounded-md border-0 py-1.5 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                                            />
+                                        </div>
+                                    ) : null}
+                                    <h1 className="text-gray-400 border-b">
+                                        POD Required:
+                                    </h1>
+                                    <div className="pb-2 border-b">
+                                        <input
+                                            type="checkbox"
+                                            id="PodRequired"
+                                            className="rounded text-green-500 focus:ring-green-300"
+                                        />
+                                    </div>
+                                    <h1 className="text-gray-400 border-b">
+                                        File:
+                                    </h1>
+                                    <div className="pb-2 border-b">
+                                        <DropBox
+                                            selectedFiles={selectedFiles}
+                                            setSelectedFiles={setSelectedFiles}
+                                            existedFile={existedFiles}
+                                            setExistedFiles={setExistedFiles}
+                                            newFiles={newFiles}
+                                            setNewFiles={setNewFiles}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end w-full gap-x-2">
+                                    {
+                                        <div className="">
+                                            {" "}
+                                            {authorizeToConvert ? (
+                                                <div className="flex justify-end w-full gap-x-2">
+                                                    <InvoicesButton
+                                                        type={"submit"}
+                                                        name={
+                                                            isLoading ? (
+                                                                <div className=" inset-0 flex justify-center items-center bg-opacity-50">
+                                                                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-smooth"></div>
+                                                                </div>
+                                                            ) : (
+                                                                "Convert"
+                                                            )
+                                                        }
+                                                        disabled={isLoading}
+                                                        // onClick={validateForm}
+                                                    />
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    }
+                                </div>
                             </form>
                         </div>
                     ) : null}
@@ -1140,7 +1239,7 @@ export default function POdetails({
                                         }
                                     </p>
                                     <h1 className="text-gray-400">
-                                       Closed reason description:
+                                        Closed reason description:
                                     </h1>
                                     <p className="font-bold">
                                         {PODetails.ClosedDesc}
@@ -1164,7 +1263,7 @@ export default function POdetails({
                                         <a
                                             href={`/POs/${file.DocName}`}
                                             target="_blank"
-                                            className="text-blue-500 underline"
+                                            className="text-blue-500 underline truncate"
                                             rel="noopener noreferrer"
                                         >
                                             <span>{file.DocName}</span>
@@ -1387,9 +1486,9 @@ export default function POdetails({
                                                         " "
                                                     ),
 
-                                                    "YYYY-MM-DD HH:mm:ss"
+                                                    "MM/DD/YYYY, h:mm:ss A"
                                                 ).format(
-                                                    "YYYY-MM-DD HH:mm:a"
+                                                    "YYYY-MM-DD hh:mm A"
                                                 ) == "Invalid date"
                                                     ? ""
                                                     : moment(
@@ -1398,9 +1497,9 @@ export default function POdetails({
                                                               " "
                                                           ),
 
-                                                          "YYYY-MM-DD HH:mm:ss"
+                                                          "MM/DD/YYYY, h:mm:ss A"
                                                       ).format(
-                                                          "YYYY-MM-DD HH:mm:a"
+                                                          "YYYY-MM-DD hh:mm A"
                                                       )}
                                             </div>
                                             <ol class="relative border-l border-gray-200 dark:border-gray-700">
@@ -1415,9 +1514,9 @@ export default function POdetails({
                                                                         " "
                                                                     ),
 
-                                                                    "YYYY-MM-DD HH:mm:ss"
+                                                                    "MM/DD/YYYY, h:mm:ss A"
                                                                 ).format(
-                                                                    "YYYY-MM-DD HH:mm:a"
+                                                                    "YYYY-MM-DD hh:mm A"
                                                                 ) ==
                                                                 "Invalid date"
                                                                     ? ""
@@ -1427,9 +1526,9 @@ export default function POdetails({
                                                                               " "
                                                                           ),
 
-                                                                          "YYYY-MM-DD HH:mm:ss"
+                                                                          "MM/DD/YYYY, h:mm:ss A"
                                                                       ).format(
-                                                                          "YYYY-MM-DD HH:mm:a"
+                                                                          "YYYY-MM-DD hh:mm A"
                                                                       )}
                                                             </time>
                                                             <h3 class="text-lg font-semibold text-gray-900">
@@ -1461,9 +1560,9 @@ export default function POdetails({
                                                                               "T",
                                                                               " "
                                                                           ),
-                                                                          "YYYY-MM-DD HH:mm:ss"
+                                                                          "MM/DD/YYYY, h:mm:ss A"
                                                                       ).format(
-                                                                          "YYYY-MM-DD HH:mm:a"
+                                                                          "YYYY-MM-DD hh:mm A"
                                                                       )}
                                                                   </time>
                                                                   <h3 class="text-lg font-semibold text-gray-900">
@@ -1471,9 +1570,9 @@ export default function POdetails({
                                                                           item.AddedBy
                                                                       }{" "}
                                                                       has{" "}
-                                                                      {item.c ==
+                                                                      {item.MatchStatus ==
                                                                       2
-                                                                          ? "matched"
+                                                                          ? "converted"
                                                                           : "closed"}{" "}
                                                                       this
                                                                       Purchase

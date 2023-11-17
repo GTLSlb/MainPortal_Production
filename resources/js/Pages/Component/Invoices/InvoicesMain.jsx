@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CloseReasons from "./Pages/CloseReasons";
+import * as signalR from "@microsoft/signalr";
 
 export default function InvoicesMain({
     setActiveIndexInv,
@@ -23,17 +24,21 @@ export default function InvoicesMain({
     loading,
     setLoading,
     currentUser,
+    hubConnection,
+    invoiceDetails,
+    setInvoiceDetails,
+    PODetails,
+    setPODetails,
+    url,
 }) {
     const [states, setStates] = useState();
     const [cities, setCities] = useState();
     const [POs, setPOs] = useState([]);
     const [PO, setPO] = useState();
-    const [POBack, setPOBack] = useState();
-    const [PODetails, setPODetails] = useState();
+    const [POBack, setPOBack] = useState(2);
     const [services, setServices] = useState();
     const [supplier, setSupplier] = useState();
     const [invoice, setInvoice] = useState();
-    const [invoiceDetails, setInvoiceDetails] = useState();
     const [companies, setCompanies] = useState();
     const [categories, setCategories] = useState([]);
     const [supplierData, setSupplierData] = useState();
@@ -53,8 +58,55 @@ export default function InvoicesMain({
     const [loadingInvoices, setLoadingInvoices] = useState(false);
     const [loadingPOs, setLoadingPOs] = useState(false);
 
+    const [activeJobInvoices, setActiveJobInvoices] = useState(0);
+    const [currentPageInvoices, setCurrentPageInvoices] = useState(0);
+    const [selectedRecordsInvoices, setSelectedRecordsInvoices] = useState([]);
+    const [originalDataInvoices, setOriginalDataInvoices] = useState([]);
+    const [sortedDataInvoices, setSortedDataInvoices] = useState();
+    const [invoiceNbSearchInvoices, setInvoiceNbSearchInvoices] = useState();
+    const [selectedStateInvoices, setSelectedStateInvoices] = useState();
+    const [selectedSupplierInvoices, setSelectedSupplierInvoices] = useState();
+    const [selectedCompanyInvoices, setSelectedCompanyInvoices] = useState();
+    const [selectedStateOptionsInvoices, setselectedStateOptionsInvoices] =
+        useState([]);
+    const [
+        selectedSupplierOptionsInvoices,
+        setselectedSupplierOptionsInvoices,
+    ] = useState([]);
+    const [selectedCompanyOptionsInvoices, setselectedCompanyOptionsInvoices] =
+        useState([]);
+    const [startDateInvoices, setStartDateInvoices] = useState();
+    const [endDateInvoices, setEndDateInvoices] = useState();
     // const [loading, setLoading] = useState(false);
-    const url = "https://gtlslebs06-vm.gtls.com.au:5678/";
+
+    const [filteredPOsPurchase, setFilteredPOsPurchase] = useState();
+    const [sortedDataPurchase, setSortedDataPurchase] = useState();
+    const [currentPagePurchase, setCurrentPagePurchase] = useState(0);
+    const [activeJobPurchase, setActiveJobPurchase] = useState(0);
+    const [selectedRecordsPurchase, setSelectedRecordsPurchase] = useState([]);
+    const [originalDataPurchase, setOriginalDataPurchase] = useState([]);
+    const [poNbSearchPurchase, setpoNbSearchPurchase] = useState();
+    const [selectedStatePurchase, setSelectedStatePurchase] = useState();
+    const [selectedSupplierPurchase, setSelectedSupplierPurchase] = useState();
+    const [selectedCompanyPurchase, setSelectedCompanyPurchase] = useState();
+    const [selectedStateOptionsPurchase, setselectedStateOptionsPurchase] =
+        useState([]);
+    const [
+        selectedSupplierOptionsPurchase,
+        setselectedSupplierOptionsPurchase,
+    ] = useState([]);
+    const [selectedCompanyOptionsPurchase, setselectedCompanyOptionsPurchase] =
+        useState([]);
+    const [startDatePurchase, setStartDatePurchase] = useState();
+    const [endDatePurchase, setEndDatePurchase] = useState();
+    const [currentPageSupplier, setCurrentPageSupplier] = useState(0);
+    const [currentPageServices, setCurrentPageServices] = useState(0);
+    const [currentPageCompanies, setCurrentPageCompanies] = useState(0);
+    const [currentPageCategories, setCurrentPageCategories] = useState(0);
+    const [currentPageReasons, setCurrentPageReasons] = useState(0);
+    const [scrollInvoice, setScrollInvoice] = useState(0);
+    const [scrollPO, setScrollPO] = useState(0);
+
     useEffect(() => {
         setUser(currentUser);
         axios
@@ -133,7 +185,7 @@ export default function InvoicesMain({
             .catch((err) => {
                 console.log(err);
             });
-            axios
+        axios
             .get(`${url}/api/GTIS/Categories`, {
                 headers: {
                     UserId: currentUser.user_id,
@@ -149,17 +201,18 @@ export default function InvoicesMain({
                         reject(error);
                     }
                 });
-                parsedDataPromise.then((parsedData) => {
-                    setCategories(parsedData);
-                    setCategoriesApi(true);
-                }).catch((error) => {
-                    console.log(error);
-                });
+                parsedDataPromise
+                    .then((parsedData) => {
+                        setCategories(parsedData);
+                        setCategoriesApi(true);
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
             })
             .catch((err) => {
                 console.log(err);
             });
-        
 
         axios
             .get(`${url}api/GTIS/Invoices`, {
@@ -489,12 +542,42 @@ export default function InvoicesMain({
     const components = [
         <Dashboard />,
         <InvoicesPage
+            hubConnection={hubConnection}
             currentUser={currentUser}
             invoice={invoice}
             AlertToast={AlertToast}
             setInvoice={setInvoice}
             setActiveIndexInv={setActiveIndexInv}
+            activeIndexInv={activeIndexInv}
             invoices={invoices}
+            activeJob={activeJobInvoices}
+            setActiveJob={setActiveJobInvoices}
+            currentPage={currentPageInvoices}
+            setCurrentPage={setCurrentPageInvoices}
+            selectedRecords={selectedRecordsInvoices}
+            setSelectedRecords={setSelectedRecordsInvoices}
+            originalData={originalDataInvoices}
+            setOriginalData={setOriginalDataInvoices}
+            sortedData={sortedDataInvoices}
+            setSortedData={setSortedDataInvoices}
+            invoiceNbSearch={invoiceNbSearchInvoices}
+            setInvoiceNbSearch={setInvoiceNbSearchInvoices}
+            selectedState={selectedStateInvoices}
+            setSelectedState={setSelectedStateInvoices}
+            selectedSupplier={selectedSupplierInvoices}
+            setSelectedSupplier={setSelectedSupplierInvoices}
+            selectedCompany={selectedCompanyInvoices}
+            setSelectedCompany={setSelectedCompanyInvoices}
+            selectedStateOptions={selectedStateOptionsInvoices}
+            setselectedStateOptions={setselectedStateOptionsInvoices}
+            selectedSupplierOptions={selectedSupplierOptionsInvoices}
+            setselectedSupplierOptions={setselectedSupplierOptionsInvoices}
+            selectedCompanyOptions={selectedCompanyOptionsInvoices}
+            setselectedCompanyOptions={setselectedCompanyOptionsInvoices}
+            startDate={startDateInvoices}
+            setStartDate={setStartDateInvoices}
+            endDate={endDateInvoices}
+            setEndDate={setEndDateInvoices}
             setInvoices={setInvoices}
             states={states}
             setPODetails={setPODetails}
@@ -508,16 +591,53 @@ export default function InvoicesMain({
             companies={companies}
             categories={categories}
             setInvoiceDetails={setInvoiceDetails}
+            scrollInvoice={scrollInvoice}
+            setScrollInvoice={setScrollInvoice}
         />,
         <PurchaseOrder
+            hubConnection={hubConnection}
             loadingPOs={loadingPOs}
+            setLoadingPOs={setLoadingPOs}
             fetchPO={fetchPO}
+            url={url}
+            filteredPOs={filteredPOsPurchase}
+            setFilteredPOs={setFilteredPOsPurchase}
+            sortedData={sortedDataPurchase}
+            setSortedData={setSortedDataPurchase}
+            currentPage={currentPagePurchase}
+            setCurrentPage={setCurrentPagePurchase}
+            activeJob={activeJobPurchase}
+            setActiveJob={setActiveJobPurchase}
+            selectedRecords={selectedRecordsPurchase}
+            setSelectedRecords={setSelectedRecordsPurchase}
+            originalData={originalDataPurchase}
+            setOriginalData={setOriginalDataPurchase}
+            poNbSearch={poNbSearchPurchase}
+            setpoNbSearch={setpoNbSearchPurchase}
+            selectedState={selectedStatePurchase}
+            setSelectedState={setSelectedStatePurchase}
+            selectedSupplier={selectedSupplierPurchase}
+            setSelectedSupplier={setSelectedSupplierPurchase}
+            selectedCompany={selectedCompanyPurchase}
+            setSelectedCompany={setSelectedCompanyPurchase}
+            selectedStateOptions={selectedStateOptionsPurchase}
+            setselectedStateOptions={setselectedStateOptionsPurchase}
+            selectedSupplierOptions={selectedSupplierOptionsPurchase}
+            setselectedSupplierOptions={setselectedSupplierOptionsPurchase}
+            selectedCompanyOptions={selectedCompanyOptionsPurchase}
+            setselectedCompanyOptions={setselectedCompanyOptionsPurchase}
+            startDate={startDatePurchase}
+            setStartDate={setStartDatePurchase}
+            endDate={endDatePurchase}
+            setEndDate={setEndDatePurchase}
             AlertToast={AlertToast}
             setPOBack={setPOBack}
             setfetchPO={setfetchPO}
             currentUser={currentUser}
             setActiveIndexInv={setActiveIndexInv}
+            activeIndexInv={activeIndexInv}
             POs={POs}
+            setPOs={setPOs}
             getPOs={getPOs}
             setPO={setPO}
             setPODetails={setPODetails}
@@ -525,10 +645,14 @@ export default function InvoicesMain({
             supplierData={supplierData}
             companies={companies}
             categories={categories}
+            scrollPO={scrollPO}
+            setScrollPO={setScrollPO}
         />,
         <Suppliers
             setActiveIndexInv={setActiveIndexInv}
             url={url}
+            currentPage={currentPageSupplier}
+            setCurrentPage={setCurrentPageSupplier}
             AlertToast={AlertToast}
             currentUser={currentUser}
             getSuppliers={getSuppliers}
@@ -543,6 +667,8 @@ export default function InvoicesMain({
             setActiveIndexInv={setActiveIndexInv}
             url={url}
             AlertToast={AlertToast}
+            currentPage={currentPageServices}
+            setCurrentPage={setCurrentPageServices}
             currentUser={currentUser}
             getServices={getServices}
             services={services}
@@ -551,6 +677,8 @@ export default function InvoicesMain({
         <Companies
             setActiveIndexInv={setActiveIndexInv}
             url={url}
+            currentPage={currentPageCompanies}
+            setCurrentPage={setCurrentPageCompanies}
             AlertToast={AlertToast}
             currentUser={currentUser}
             getCompanies={getCompanies}
@@ -559,6 +687,7 @@ export default function InvoicesMain({
             states={states}
         />,
         <Invoice
+            hubConnection={hubConnection}
             currentUser={currentUser}
             AlertToast={AlertToast}
             setActiveIndexInv={setActiveIndexInv}
@@ -573,6 +702,8 @@ export default function InvoicesMain({
             categories={categories}
         />,
         <CreateInvoice
+            invoices={invoices}
+            hubConnection={hubConnection}
             getInvoices={getInvoices}
             AlertToast={AlertToast}
             currentUser={currentUser}
@@ -586,6 +717,7 @@ export default function InvoicesMain({
             categories={categories}
         />,
         <CreatePO
+            hubConnection={hubConnection}
             setActiveIndexInv={setActiveIndexInv}
             currentUser={currentUser}
             AlertToast={AlertToast}
@@ -599,6 +731,8 @@ export default function InvoicesMain({
             categories={categories}
         />,
         <POdetails
+            invoices={invoices}
+            hubConnection={hubConnection}
             getPOs={getPOs}
             getInvoices={getInvoices}
             currentUser={currentUser}
@@ -616,6 +750,7 @@ export default function InvoicesMain({
             categories={categories}
         />,
         <AddSupplier
+            supplierData={supplierData}
             setActiveIndexInv={setActiveIndexInv}
             url={url}
             AlertToast={AlertToast}
@@ -630,6 +765,8 @@ export default function InvoicesMain({
             url={url}
             currentUser={currentUser}
             AlertToast={AlertToast}
+            currentPage={currentPageCategories}
+            setCurrentPage={setCurrentPageCategories}
             getCategories={getCategories}
             categories={categories}
             setCategories={setCategories}
@@ -637,6 +774,8 @@ export default function InvoicesMain({
         <CloseReasons
             setActiveIndexInv={setActiveIndexInv}
             url={url}
+            currentPage={currentPageReasons}
+            setCurrentPage={setCurrentPageReasons}
             AlertToast={AlertToast}
             currentUser={currentUser}
             getCloseReasons={getCloseReasons}
@@ -661,7 +800,7 @@ export default function InvoicesMain({
     }
     if (loading) {
         return (
-            <div className="min-h-screen">
+            <div className="bg-smooth">
                 <div className=" h-full flex ">
                     {/* Left sidebar & main wrapper */}
                     <div className="min-w-0 flex-1 bg-gray-100 xl:flex">
@@ -677,6 +816,7 @@ export default function InvoicesMain({
                                             currentUser={currentUser}
                                             setInvoice={setInvoice}
                                             setPO={setPO}
+                                            activeIndexInv={activeIndexInv}
                                             setActiveIndexInv={
                                                 setActiveIndexInv
                                             }

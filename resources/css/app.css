@@ -15,6 +15,14 @@
 }
 
 
+.cookie-popup {
+  position: fixed;
+  bottom: 20px;
+  right: 100px;
+  max-width: 300px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
 body::-webkit-scrollbar {
   width: 5px;
 }

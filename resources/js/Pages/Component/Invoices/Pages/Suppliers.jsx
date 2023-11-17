@@ -8,34 +8,36 @@ export default function Suppliers({
     states,
     supplierData,
     setSupplierData,
+    currentPage, 
+    setCurrentPage,
     services,
     currentUser,
     setSupplier,
     cities,
 }) {
     function handleAdd() {
-        setSupplier(null)
+        setSupplier(null);
         setActiveIndexInv(10);
     }
     function handleShowHideAddButton() {
-        if (currentUser.role_id == 8) {
-            return false;
-        } else {
-            return true;
-        }
+        return true;
     }
     const [filteredData, setFilteredData] = useState(supplierData);
     useEffect(() => {
         setFilteredData(supplierData);
     }, [supplierData]);
-    const [currentPage, setCurrentPage] = useState(0);
+    // const [currentPage, setCurrentPage] = useState(0);
     const [isFetching, setIsFetching] = useState();
-    const filterData = (name) => {
+    const filterData = (name) => { 
         setCurrentPage(0)
         // Filter the data based on the start and end date filters
         const filtered = supplierData.filter((item) => {
             const ConsNbMatch =
-                name.length > 0 ? item.SupplierName.toLowerCase().includes(name.toLowerCase()) : true;
+                name.length > 0
+                    ? item.SupplierName.toLowerCase().includes(
+                          name.toLowerCase()
+                      )
+                    : true;
             // Convert end date string to Date object
             return ConsNbMatch; // Compare the item date to the filter dates
         });

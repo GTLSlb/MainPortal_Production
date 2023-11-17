@@ -1,5 +1,5 @@
 import InvoicesButton from "../components/InvoicesButton";
-import {  useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import SmallTable from "../components/SmallTable";
 
 function classNames(...classes) {
@@ -10,16 +10,18 @@ export default function Companies({
     url,
     states,
     companies,
+    currentPage, 
+    setCurrentPage,
     AlertToast,
     currentUser,
     setCompanies,
     getCompanies,
 }) {
-    function fromModel(){
+    function fromModel() {
         return 2;
     }
     const [showAddRow, setShowAddRow] = useState(false);
-    const [currentPage, setCurrentPage] = useState(0);
+    // const [currentPage, setCurrentPage] = useState(0);
     const [editIndex, setEditIndex] = useState(null);
     const addurl = `${url}api/GTIS/Add/Company`;
     const [isFetching, setIsFetching] = useState();
@@ -42,7 +44,7 @@ export default function Companies({
     }
     const dynamicHeaders = [
         { label: "Company name", key: "CompanyName" },
-        { label: "Company Abv", key: "CompanyAbv" },
+        { label: "Company ABV", key: "CompanyAbv" },
         { label: "State", key: "StateId" },
         { label: "Status", key: "StatusId" },
         // Add more headers as needed...
@@ -54,12 +56,16 @@ export default function Companies({
     }
 
     const filterData = (name) => {
-        setCurrentPage(0)
+        setCurrentPage(0);
         // Filter the data based on the start and end date filters
 
         const filtered = companies.filter((item) => {
             const ConsNbMatch =
-                name.length > 0 ? item.CompanyName.includes(name) : true;
+                name.length > 0
+                    ? item.CompanyName.toLowerCase().includes(
+                          name.toLowerCase()
+                      )
+                    : true;
             // Convert end date string to Date object
             return ConsNbMatch; // Compare the item date to the filter dates
         });
@@ -136,17 +142,15 @@ export default function Companies({
                                     className="w-full hidden"
                                 />
                             </div>
-                            {editIndex != null?<div className="col-span-2">
+                            {editIndex != null ? (
+                                <div className="col-span-2">
                                     <InvoicesButton
-                                        name={
-                                                 "Cancel"
-                                        }
-                                        onClick={() =>
-                                            setEditIndex(null)
-                                        }
+                                        name={"Cancel"}
+                                        onClick={() => setEditIndex(null)}
                                         className="w-full "
                                     />
-                                </div>:null}
+                                </div>
+                            ) : null}
                             {handleShowHideAddButton() ? (
                                 <div className="col-span-2">
                                     <InvoicesButton
@@ -155,10 +159,10 @@ export default function Companies({
                                                 ? "Cancel"
                                                 : "Add Company"
                                         }
-                                        onClick={() =>{
-                                            setEditIndex(null)
-                                            setShowAddRow(!showAddRow)}
-                                        }
+                                        onClick={() => {
+                                            setEditIndex(null);
+                                            setShowAddRow(!showAddRow);
+                                        }}
                                         className="w-full "
                                     />
                                 </div>

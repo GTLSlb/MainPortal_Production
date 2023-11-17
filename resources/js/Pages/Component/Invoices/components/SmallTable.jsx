@@ -29,6 +29,7 @@ export default function SmallTable({
     currentPage,
     setCurrentPage,
 }) {
+
     function classNames(...classes) {
         return classes.filter(Boolean).join(" ");
     }
@@ -39,12 +40,22 @@ export default function SmallTable({
         if (states) {
             setSelected(states[0]);
         }
-    }, []);
+    }, [states]);
     useEffect(() => {
         setData(objects);
     }, [objects]);
+    useEffect(() => {
+        if (states) {
+            if (showAddRow == true) {
+                setSelected(states[0]);
+            }
+        }
+    }, [showAddRow]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [error, setError] = useState(false);
+
+    const [error, setError] = useState(true);
+    const [companyNameError, setCompanyNameError] = useState(true);
+    const [companyAbvError, setCompanyAbvError] = useState(true);
     const [editError, setEditError] = useState(false);
     const [newObject, setNewObject] = useState({});
     const [editedObject, setEditObject] = useState(null);
@@ -52,6 +63,69 @@ export default function SmallTable({
     const [checked, setChecked] = useState(false);
     const [indeterminate, setIndeterminate] = useState(false);
     const [selectedRecords, setselectedRecords] = useState([]);
+    const [companyAbv, setCompanyAbv] = useState([]);
+    const [companyName, setCompanyName] = useState([]);
+    const [disabledAdd, setdisabledAdd] = useState(false);
+    const [disabledEdit, setdisabledEdit] = useState(false);
+
+    useEffect(()=>{
+        setError(null)
+        setEditError(null)
+        setCompanyAbvError(null)
+        setCompanyNameError(null)
+    },[editIndex,showAddRow])
+
+    function disableAddFunc() {
+        if (fromModel() == 2) {
+            if (
+                companyAbv?.length > 0 &&
+                companyName?.length > 0 &&
+                companyAbvError == false &&
+                companyNameError == false
+            ) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return error;
+        }
+    }
+    function disableEditFunc() {
+        if (fromModel() == 2) {
+            if (
+                companyAbv?.length > 0 &&
+                companyName?.length > 0 &&
+                companyAbvError == false &&
+                companyNameError == false
+            ) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return editError;
+        }
+    }
+    useEffect(() => {
+        if (editedObject) {
+            if (fromModel() == 2) {
+                setCompanyName(editedObject.CompanyName);
+                setCompanyAbv(editedObject.CompanyAbv);
+            }
+        }
+    }, [editedObject]);
+    useEffect(() => {
+        setdisabledAdd(disableAddFunc());
+        setdisabledEdit(disableEditFunc());
+    }, [
+        companyAbv,
+        companyName,
+        companyNameError,
+        companyAbvError,
+        editError,
+        error,
+    ]);
     useLayoutEffect(() => {
         const isIndeterminate =
             selectedRecords?.length > 0 &&
@@ -62,13 +136,11 @@ export default function SmallTable({
             checkbox.current.indeterminate = isIndeterminate;
         }
     }, [selectedRecords]);
-
     function toggleAll() {
         setselectedRecords(checked || indeterminate ? [] : data);
         setChecked(!checked && !indeterminate);
         setIndeterminate(false);
     }
-
     const PER_PAGE = 10;
     const OFFSET = currentPage * PER_PAGE;
     const handlePageClick = (selectedPage) => {
@@ -79,10 +151,22 @@ export default function SmallTable({
     function Editarray(index) {
         if (editIndex !== null) {
             const updatedObjects = [...data];
+            let objectToEdit = {
+                ...editedObject,
+                    CompanyName: companyName,
+                    CompanyAbv: companyAbv,
+            }
             updatedObjects[editIndex + currentPage * PER_PAGE] = editedObject;
+            if (fromModel() == 2) {
+                objectToEdit = {
+                    ...editedObject,
+                        CompanyName: companyName,
+                        CompanyAbv: companyAbv,
+                }
+            }
             setData(updatedObjects);
             axios
-                .post(addurl, editedObject, {
+                .post(addurl, objectToEdit, {
                     headers: {
                         UserId: currentUser.user_id,
                     },
@@ -100,23 +184,27 @@ export default function SmallTable({
                 });
         }
     }
-    function ShowEditCompanies() {
-        if (fromModel() == 2) {
-            if (currentUser.role_id == 1) {
+    function handleEditCompany() {
+        if (fromModel() == 3) {
+        }
+    }
+    function ShowEditBasedOnRoleAndModel() {
+        if (currentUser.role_id == 1) {
+            return true;
+        } else if (fromModel() == 3) {
+            if (currentUser.role_id == 9 || currentUser.role_id == 8) {
                 return true;
             } else {
                 return false;
             }
-        }
-        else if(fromModel() == 1 || fromModel() == 4 || fromModel() == 3){
-            if(currentUser.role_id == 8){
+        } else if (fromModel() == 1 || fromModel() == 4 || fromModel() == 3) {
+            if (currentUser.role_id == 8) {
                 return false;
-            }
-            else{
+            } else {
                 return true;
             }
         }
-        return true;
+        return false;
     }
     function addObject() {
         let dataToSend = newObject;
@@ -138,6 +226,22 @@ export default function SmallTable({
                 };
             }
         }
+        if (fromModel() == 2) {
+            setNewObject({
+                ...newObject,
+                CompanyName: companyName,
+                CompanyAbv: companyAbv,
+                StateId: selected.StateId,
+                StatusId: 1,
+            });
+            dataToSend = {
+                ...newObject,
+                CompanyName: companyName,
+                CompanyAbv: companyAbv,
+                StateId: selected.StateId,
+                StatusId: 1,
+            };
+        }
         axios
             .post(addurl, dataToSend, {
                 headers: {
@@ -154,6 +258,8 @@ export default function SmallTable({
                 parsedDataPromise.then((parsedData) => {
                     // setObjects(parsedData);
                     AlertToast("Saved Successfully", 1);
+                    setCompanyAbv();
+                    setCompanyName();
                     setNewObject({});
                 });
             })
@@ -192,9 +298,9 @@ export default function SmallTable({
         if (isValuePresent) {
             // Value is already present
             // Perform the desired action, e.g., show an error message
-            setError("Name Already Exists !");
+            setError("Name already exists.");
         } else if (enteredValue.length == 0) {
-            setError("Please Enter A Value!");
+            setError("Please enter a value.");
         } else {
             // Value is not present
             setError(false);
@@ -205,6 +311,30 @@ export default function SmallTable({
             [fieldName]: enteredValue,
             StatusId: 1,
         });
+    }
+    function handleCompChange(e, header) {
+        const enteredValue = e.target.value;
+        const fieldName = header.key;
+        const isValuePresent = isValueAlreadyPresent(enteredValue, fieldName);
+
+        if (isValuePresent && fieldName == "CompanyName") {
+            setCompanyNameError("Name already exists.");
+        } else if (isValuePresent && fieldName == "CompanyAbv") {
+            setCompanyAbvError("ABV already exists.");
+        } else if (enteredValue.length == 0 && fieldName == "CompanyName") {
+            setCompanyNameError("Please enter a value.");
+        } else if (enteredValue.length == 0 && fieldName == "CompanyAbv") {
+            setCompanyAbvError("Please enter a value.");
+        } else {
+            if (header.key == "CompanyName") {
+                setCompanyNameError(false);
+                setCompanyName(enteredValue);
+            }
+            if (header.key == "CompanyAbv") {
+                setCompanyAbvError(false);
+                setCompanyAbv(enteredValue);
+            }
+        }
     }
     function isEditValueAlreadyPresent(value, fieldName, currentValue) {
         // Convert the value, currentValue, and field values to lowercase
@@ -229,7 +359,6 @@ export default function SmallTable({
         }
         return false; // Value doesn't exist
     }
-
     function handleEditChange(e, header, currentValue) {
         const enteredValue = e.target.value;
         const fieldName = header.key;
@@ -244,9 +373,9 @@ export default function SmallTable({
         if (isValuePresent) {
             // Value is already present
             // Perform the desired action, e.g., show an error message
-            setEditError("Name Already Exists !");
+            setEditError("Name already exists.");
         } else if (enteredValue.length == 0) {
-            setEditError("Please Enter A Value!");
+            setEditError("Please enter a value.");
         } else {
             // Value is not present
             setEditError(false);
@@ -265,7 +394,7 @@ export default function SmallTable({
                     <div className="pt-2">
                         <div>
                             <div className="flow-root  bg-white ">
-                                <div className="w-full border rounded-lg overflow-x-auto containerscroll">
+                                <div className="w-full border rounded-lg overflow-x-auto containerscroll min-h-[15rem]">
                                     <div className="inline-block min-w-full  align-middle ">
                                         <div className="relative">
                                             {selectedRecords?.length > 0 && (
@@ -297,7 +426,7 @@ export default function SmallTable({
                                                                 </th>
                                                             )
                                                         )}
-                                                        {ShowEditCompanies() ? (
+                                                        {ShowEditBasedOnRoleAndModel() ? (
                                                             <th
                                                                 scope="col"
                                                                 className="px-3 w-20 text-left text-sm font-semibold text-gray-400 border"
@@ -313,9 +442,6 @@ export default function SmallTable({
                                                     {showAddRow && (
                                                         <tr>
                                                             <td className="whitespace-nowrap bg-gray-100 py-2 pl-4 pr-3 text-sm font-medium text-gray-500 sm:pl-3 border-l"></td>{" "}
-                                                            {/* Empty cell for ID */}
-                                                            {/* <td></td>{" "} */}
-                                                            {/* Empty cell for checkbox */}
                                                             {dynamicHeaders.map(
                                                                 (header) => (
                                                                     <td
@@ -499,6 +625,64 @@ export default function SmallTable({
                                                                                     )}
                                                                                 </Listbox>
                                                                             </div>
+                                                                        ) : header.key ==
+                                                                          "CompanyAbv" ? (
+                                                                            <div>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={
+                                                                                        newObject[
+                                                                                            header
+                                                                                                .key
+                                                                                        ]
+                                                                                    }
+                                                                                    onChange={(
+                                                                                        e
+                                                                                    ) => {
+                                                                                        handleCompChange(
+                                                                                            e,
+                                                                                            header
+                                                                                        );
+                                                                                    }}
+                                                                                    className="w-full px-2 py-1 border-gray-300 rounded focus:ring-goldt focus:border-goldd"
+                                                                                />
+                                                                                {companyAbvError && (
+                                                                                    <p className="text-red-600 pt-1 ">
+                                                                                        {
+                                                                                            companyAbvError
+                                                                                        }
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
+                                                                        ) : header.key ==
+                                                                          "CompanyName" ? (
+                                                                            <div>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={
+                                                                                        newObject[
+                                                                                            header
+                                                                                                .key
+                                                                                        ]
+                                                                                    }
+                                                                                    onChange={(
+                                                                                        e
+                                                                                    ) => {
+                                                                                        handleCompChange(
+                                                                                            e,
+                                                                                            header
+                                                                                        );
+                                                                                    }}
+                                                                                    className="w-full px-2 py-1 border-gray-300 rounded focus:ring-goldt focus:border-goldd"
+                                                                                />
+                                                                                {companyNameError && (
+                                                                                    <p className="text-red-600 pt-1 ">
+                                                                                        {
+                                                                                            companyNameError
+                                                                                        }
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
                                                                         ) : (
                                                                             <div>
                                                                                 <input
@@ -534,7 +718,7 @@ export default function SmallTable({
                                                             <td className="border-t-2 border-b-2 border-r-2 border-gray-400">
                                                                 <button
                                                                     className={`text-blue-400 ml-2 pl-2 hover:text-blue-900 ${
-                                                                        error
+                                                                        disabledAdd
                                                                             ? "text-gray-600 cursor-not-allowed"
                                                                             : ""
                                                                     }`}
@@ -561,7 +745,7 @@ export default function SmallTable({
                                                                         }
                                                                     }}
                                                                     disabled={
-                                                                        error
+                                                                        disabledAdd
                                                                     }
                                                                 >
                                                                     <span className="font-bold text-lg">
@@ -633,7 +817,7 @@ export default function SmallTable({
                                                                                                             defaultChecked={
                                                                                                                 editedObject[
                                                                                                                     header
-                                                                                                                        .key
+                                                                                                                        ?.key
                                                                                                                 ] ==
                                                                                                                 1
                                                                                                             }
@@ -719,7 +903,7 @@ export default function SmallTable({
                                                                                                                     <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                                                                                                         <span className="block truncate">
                                                                                                                             {
-                                                                                                                                selected.StateName
+                                                                                                                                selected?.StateName
                                                                                                                             }
                                                                                                                         </span>
                                                                                                                         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -809,6 +993,64 @@ export default function SmallTable({
                                                                                                         )}
                                                                                                     </Listbox>
                                                                                                 </div>
+                                                                                            ) : header.key ==
+                                                                                              "CompanyAbv" ? (
+                                                                                                <div>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        defaultValue={
+                                                                                                            editedObject[
+                                                                                                                header
+                                                                                                                    ?.key
+                                                                                                            ]
+                                                                                                        }
+                                                                                                        onChange={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            handleCompChange(
+                                                                                                                e,
+                                                                                                                header
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="w-full px-2 py-1 border-gray-300 rounded focus:ring-goldt focus:border-goldd"
+                                                                                                    />
+                                                                                                    {companyAbvError && (
+                                                                                                        <p className="text-red-600 pt-1 ">
+                                                                                                            {
+                                                                                                                companyAbvError
+                                                                                                            }
+                                                                                                        </p>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            ) : header.key ==
+                                                                                              "CompanyName" ? (
+                                                                                                <div>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        defaultValue={
+                                                                                                            editedObject[
+                                                                                                                header
+                                                                                                                    ?.key
+                                                                                                            ]
+                                                                                                        }
+                                                                                                        onChange={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            handleCompChange(
+                                                                                                                e,
+                                                                                                                header
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="w-full px-2 py-1 border-gray-300 rounded focus:ring-goldt focus:border-goldd"
+                                                                                                    />
+                                                                                                    {companyNameError && (
+                                                                                                        <p className="text-red-600 pt-1 ">
+                                                                                                            {
+                                                                                                                companyNameError
+                                                                                                            }
+                                                                                                        </p>
+                                                                                                    )}
+                                                                                                </div>
                                                                                             ) : (
                                                                                                 <div>
                                                                                                     <input
@@ -887,10 +1129,10 @@ export default function SmallTable({
                                                                                 </td>
                                                                             )
                                                                         )}
-                                                                        {ShowEditCompanies() ? (
+                                                                        {ShowEditBasedOnRoleAndModel() ? (
                                                                             <td
                                                                                 className={`relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0  ${
-                                                                                    editError
+                                                                                    disabledEdit
                                                                                         ? "cursor-not-allowed"
                                                                                         : ""
                                                                                 } ${
@@ -900,7 +1142,7 @@ export default function SmallTable({
                                                                                         : "border"
                                                                                 }`}
                                                                             >
-                                                                                <div className="ml-1">
+                                                                                <div className="ml-1 cursor-not-allowed">
                                                                                     {editIndex ==
                                                                                     index ? (
                                                                                         <a
@@ -911,8 +1153,8 @@ export default function SmallTable({
                                                                                                 );
                                                                                             }}
                                                                                             className={`text-green-700 hover:text-blue-900 flex gap-x-1 ${
-                                                                                                editError
-                                                                                                    ? " text-red-500 pointer-events-none"
+                                                                                                disabledEdit
+                                                                                                    ? "text-red-500  pointer-events-none"
                                                                                                     : ""
                                                                                             }`}
                                                                                         >
@@ -934,6 +1176,15 @@ export default function SmallTable({
                                                                                                     );
                                                                                                     setEditObject(
                                                                                                         object
+                                                                                                    );
+                                                                                                    setSelected(
+                                                                                                        states?.find(
+                                                                                                            (
+                                                                                                                state
+                                                                                                            ) =>
+                                                                                                                state.StateId ===
+                                                                                                                object.StateId
+                                                                                                        )
                                                                                                     );
                                                                                                 }}
                                                                                                 className="text-blue-500 hover:text-blue-900 flex gap-x-1"
@@ -984,6 +1235,7 @@ export default function SmallTable({
                                     previousLabel={"← Previous"}
                                     nextLabel={"Next →"}
                                     pageCount={pageCount}
+                                    initialPage={currentPage}
                                     onPageChange={handlePageClick}
                                     containerClassName={
                                         "flex justify-center items-center mt-4"

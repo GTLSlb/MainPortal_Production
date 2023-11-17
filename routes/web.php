@@ -63,19 +63,23 @@ Route::get('/Main', function () {
 
 Route::get('/opportunities', function () {
     return Inertia::render('Opportunities');
-})-> name('opportunities');
+})->name('opportunities');
+
+Route::get('/goinggreen', function () {
+    return Inertia::render('GoingGreen');
+})->name('goinggreen');
 
 Route::get('/terms', function () {
     return Inertia::render('Terms');
-})-> name('terms');
+})->name('terms');
 
 Route::get('/palletterms', function () {
     return Inertia::render('PalletTerms');
-})-> name('palletterms');
+})->name('palletterms');
 
 Route::get('/capabilitystatement', function () {
     return Inertia::render('Capability');
-})-> name('capabilitystatement');
+})->name('capabilitystatement');
 
 // Route::get('/news', function () {
 //     return Inertia::render('NewsPage');
@@ -89,7 +93,7 @@ Route::post('/contact', [ContactFormController::class, 'submitContactForm'])->na
 Route::post('/contactus', [ContactUsFormController::class, 'submitContactUsForm'])->name('contactus.submit');
 Route::post('/support', [SupportFormController::class, 'submitSupportForm'])->name('support.submit');
 
-Route::get('/download-docx', function() {
+Route::get('/download-docx', function () {
     $pathToFile = public_path('pdf/20230630-Gold-Tiger-Logistics-Solutions-Trading-Terms-and-Conditions.pdf');
     $headers = array(
         'Content-Type: application/pdf',
@@ -105,25 +109,24 @@ Route::get('/download-docx', function() {
 //     ->redirect();
 // });
 
+Route::get('/downloadGTLS-Pallets', function () {
+    $pathToFile = public_path('docs/GTLS Pallet Trading Policy 2023_08_23.pdf');
+    $headers = array(
+        'Content-Type: application/docx',
+    );
+    return response()->download($pathToFile, 'GTLS Pallet Trading Policy 2023_08_23.pdf', $headers);
+});
 
 Route::post('/sendemail', [SendDailyEmail::class, 'SendEmail']);
 
 
 
-Route::get('/downloadGTLS-docx', function() {
+Route::get('/downloadGTLS-docx', function () {
     $pathToFile = public_path('docs/Gold-Tiger-Capability-Statement-2020-12-24.pdf');
     $headers = array(
         'Content-Type: application/docx',
     );
     return response()->download($pathToFile, 'Gold-Tiger-Capability-Statement-2020-12-24.pdf', $headers);
-});
-
-Route::get('/downloadGTLS-Pallets', function() {
-    $pathToFile = public_path('docs/GTLS Pallet Service Trading Policy 2023_08_09.pdf');
-    $headers = array(
-        'Content-Type: application/docx',
-    );
-    return response()->download($pathToFile, 'GTLS Pallet Service Trading Policy 2023_08_09.pdf', $headers);
 });
 
 Route::get('/checkAuth', [AuthenticatedSessionController::class, 'checkAuth']);
@@ -144,13 +147,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/user/{id}', [RegisteredUserController::class, 'getUserName']);
     Route::get('/safety/{user_id}', [RegisteredUserController::class, 'getSafetyData']);
-    Route::get('/findUserById/{user_id}',[RegisteredUserController::class, 'searchUserByName']);
+    Route::get('/findUserById/{user_id}', [RegisteredUserController::class, 'searchUserByName']);
+    Route::get('/getUsersWhoCanApprove', [RegisteredUserController::class, 'getUsersWhoCanApprove']);
     Route::delete('/delete-file', [RegisteredUserController::class, 'deleteFile']);
-
 });
 
 Route::get('/session-data', function () {
-    return response()->json([        'userr' => session('userr')    ]);
+    return response()->json(['userr' => session('userr')]);
 });
 
 Route::fallback(function () {
@@ -159,4 +162,4 @@ Route::fallback(function () {
     ]);
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

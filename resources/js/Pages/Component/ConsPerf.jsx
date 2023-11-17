@@ -64,8 +64,10 @@ export default function ConsPerf({
             filterEndDate.setMinutes(59);
             filterEndDate.setHours(23);
             const ConsNbMatch = selectedConsignment
-                ? item.CONSIGNMENTNUMBER.includes(selectedConsignment)
-                : true; // Check if item's receiver name matches the selected receiver, or if no receiver is selected (return true to include all items)3
+            ? item.CONSIGNMENTNUMBER.toLowerCase().includes(
+                  selectedConsignment.toLowerCase()
+              )
+            : true;
             return (
                 itemDate >= filterStartDate &&
                 itemDate <= filterEndDate &&

@@ -94,15 +94,9 @@ class SupportForm extends Component {
 
         return (
             <div>
-                {/* {isLoading && (
-        <div className="absolute inset-0 flex justify-center items-center  bg-opacity-50">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-100"></div>
-        </div>
-      )} */}
-
                 {success && (
                     <div
-                        className="bg-goldt border border-goldd text-dark px-4 py-3 rounded relative mb-4"
+                        className="bg-goldt border border-goldd text-dark px-4 py-3 rounded relative mb-4 z-50"
                         role="alert"
                     >
                         <strong className="font-bold">Success!</strong>
@@ -130,7 +124,7 @@ class SupportForm extends Component {
                     onSubmit={this.handleSubmit}
                     encType="multipart/form-data"
                 >
-                    <div className="space-y-12 pr-2">
+                    <div className="space-y-12 pr-2 z-50">
                         <div className="border-b border-gray-900/10 pb-12">
                             <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                                 <div className="sm:col-span-3">

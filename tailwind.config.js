@@ -18,7 +18,8 @@ module.exports = {
                 header:"url('/resources/js/assets/backgrounds/backgroundop.webp')",
                 world:"url('/resources/js/assets/backgrounds/world.webp')",
                 career:"url('/resources/js/assets/pictures/careersvector.webp')",
-                tiremark:"url('/resources/js/assets/backgrounds/tiremark.webp')"
+                tiremark:"url('/resources/js/assets/backgrounds/tiremark.webp')",
+                gg:"url('/resources/js/assets/backgrounds/green-bg.webp')"
             },
             fontFamily: {
                 sans: ["Figtree", ...defaultTheme.fontFamily.sans],
@@ -30,7 +31,15 @@ module.exports = {
                 goldo:"#f1dba238",
                 goldl:"#f1dba2",  // customColor is the name of the color
                 dark: "#1A1E21",
-                smooth:"#f6f8f9"
+                smooth:"#f6f8f9",
+                gtw1:"#6C3197",
+                gtw2:"#9E43FA",
+                gtrs1:"#0073FF",
+                gtrs2:"#00C6FF",
+                gtms1:"#F37435",
+                gtms2:"#FDC630",
+                gtam1:"#E95382",
+                gtam2:"#FF98D4",
             },
             animation: {
                 bounce200: 'bounce 1s infinite 200ms',

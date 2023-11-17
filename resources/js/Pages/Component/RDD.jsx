@@ -175,7 +175,9 @@ export default function RDDreason({
             filterEndDate.setMinutes(59);
             filterEndDate.setHours(23);
             const ConsNbMatch = selectedConsignment
-                ? item.ConsignmentNo.includes(selectedConsignment)
+                ? item.ConsignmentNo.toLowerCase().includes(
+                      selectedConsignment.toLowerCase()
+                  )
                 : true;
             const chargeToMatch =
                 intArray?.length === 0 || intArray?.includes(item.DebtorId);

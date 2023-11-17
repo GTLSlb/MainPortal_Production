@@ -11,6 +11,8 @@ export default function CloseReasons({
     states,
     AlertToast,
     currentUser,
+    currentPage, 
+    setCurrentPage,
     getCloseReasons,
     closeReasons,
     setCloseReasons,
@@ -20,7 +22,7 @@ export default function CloseReasons({
     }
     const [showAddRow, setShowAddRow] = useState(false);
     const [editIndex, setEditIndex] = useState(null);
-    const [currentPage, setCurrentPage] = useState(0);
+    // const [currentPage, setCurrentPage] = useState(0);
     const addurl = `${url}api/GTIS/Add/PoCloseReason`;
     const [isFetching, setIsFetching] = useState();
     const [objects, setObjects] = useState();
@@ -79,7 +81,9 @@ export default function CloseReasons({
 
         const filtered = closeReasons.filter((item) => {
             const ConsNbMatch =
-                name.length > 0 ? item.ReasonName.includes(name) : true;
+                name.length > 0
+                    ? item.ReasonName.toLowerCase().includes(name.toLowerCase())
+                    : true;
             // Convert end date string to Date object
             return ConsNbMatch; // Compare the item date to the filter dates
         });

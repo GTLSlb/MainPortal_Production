@@ -7,12 +7,13 @@ import {
     CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import ExcelJS from "exceljs";
-import {TextFilter} from "../components/TextFilter";
+import { TextFilter } from "../components/TextFilter";
 import MainTable from "../components/MainTable";
 import InvoicesButton from "../components/InvoicesButton";
 import { useEffect } from "react";
 import Select from "react-select";
 import moment from "moment/moment";
+import * as signalR from "@microsoft/signalr";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
@@ -28,20 +29,77 @@ export default function InvoicesPage({
     setPODetails,
     POs,
     setPOBack,
+    activeJob,
+    setActiveJob,
+    currentPage,
+    setCurrentPage,
+    selectedRecords,
+    setSelectedRecords,
+    originalData,
+    setOriginalData,
+    sortedData,
+    setSortedData,
+    invoiceNbSearch,
+    setInvoiceNbSearch,
+    // selectedState,
+    // setSelectedState,
+    // selectedSupplier,
+    // setSelectedSupplier,
+    // selectedCompany,
+    // setSelectedCompany,
+    selectedStateOptions,
+    setselectedStateOptions,
+    selectedSupplierOptions,
+    setselectedSupplierOptions,
+    selectedCompanyOptions,
+    setselectedCompanyOptions,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
     url,
     getInvoices,
+    activeIndexInv,
     categories,
     setInvoice,
     currentUser,
+    setInvoices,
     setLoadingInvoices,
     loadingInvoices,
     setInvoiceDetails,
+    hubConnection,
+    scrollInvoice,
+    setScrollInvoice,
 }) {
+    useEffect(() => {
+        setLoadingInvoices(true);
+        axios
+            .get(`${url}api/GTIS/Invoices`, {
+                headers: {
+                    UserId: currentUser.user_id,
+                    PO_Id: null,
+                },
+            })
+            .then((res) => {
+                const x = JSON.stringify(res.data);
+                const parsedDataPromise = new Promise((resolve, reject) => {
+                    const parsedData = JSON.parse(x);
+                    resolve(parsedData);
+                });
+                parsedDataPromise.then((parsedData) => {
+                    setInvoices(parsedData);
+                    setLoadingInvoices(false);
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }, [activeIndexInv]);
     function filterbyState(jsonData) {
         if (!jsonData || jsonData.length === 0) {
             return [];
         }
-    
+
         if (currentUser.role_id == 6 || currentUser.role_id == 7) {
             return jsonData.filter(
                 (item) => item.StateId === currentUser.state
@@ -53,37 +111,57 @@ export default function InvoicesPage({
     const [filteredInvoices, setFilteredInvoices] = useState(
         filterbyState(invoices)
     );
-    const [activeJob, setActiveJob] = useState(0);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [selectedRecords, setSelectedRecords] = useState([]);
-    const [originalData, setOriginalData] = useState([]);
-    const [sortedData, setSortedData] = useState(filteredInvoices);
-    const [invoiceNbSearch, setInvoiceNbSearch] = useState();
-    const [selectedState, setSelectedState] = useState();
-    const [selectedSupplier, setSelectedSupplier] = useState();
-    const [selectedCompany, setSelectedCompany] = useState();
-    const [selectedStateOptions, setselectedStateOptions] = useState([]);
-    const [selectedSupplierOptions, setselectedSupplierOptions] = useState([]);
-    const [selectedCompanyOptions, setselectedCompanyOptions] = useState([]);
-    const [startDate, setStartDate] = useState(getOldestInvoiceDate(invoices));
-    const [endDate, setEndDate] = useState(getLatestInvoiceDate(invoices));
+    // const [activeJob, setActiveJob] = useState(0);
+    // const [currentPage, setCurrentPage] = useState(0);
+    // const [selectedRecords, setSelectedRecords] = useState([]);
+    // const [originalData, setOriginalData] = useState([]);
+    // const [sortedData, setSortedData] = useState(filteredInvoices);
+    // const [invoiceNbSearch, setInvoiceNbSearch] = useState();
+    const [selectedState, setSelectedState] = useState(selectedStateOptions);
+    const [selectedSupplier, setSelectedSupplier] = useState(
+        selectedSupplierOptions
+    );
+    const [selectedCompany, setSelectedCompany] = useState(
+        selectedCompanyOptions
+    );
+    // const [selectedStateOptions, setselectedStateOptions] = useState([]);
+    // const [selectedSupplierOptions, setselectedSupplierOptions] = useState([]);
+    // const [selectedCompanyOptions, setselectedCompanyOptions] = useState([]);
+    // const [startDate, setStartDate] = useState(getOldestInvoiceDate(invoices));
+    // const [endDate, setEndDate] = useState(getLatestInvoiceDate(invoices));
+
     useEffect(() => {
-        setSortedData(filteredInvoices);
-    }, [filteredInvoices]);
+        setStartDate(getOldestInvoiceDate(invoices));
+        setEndDate(getLatestInvoiceDate(invoices));
+        setSortedData(filterbyState(invoices));
+    }, []);
+
+    // useEffect(() => {
+    //     setSortedData(filteredInvoices);
+    // }, [filteredInvoices]);
     useEffect(() => {
-        setFilteredInvoices(filterRecords(filterbyState(invoices)));
-        setOriginalData(filterRecords(filterbyState(invoices)));
-    }, [
-        invoices,
-        loadingInvoices,
-        activeJob,
-        startDate,
-        endDate,
-        invoiceNbSearch,
-        selectedStateOptions,
-        selectedSupplierOptions,
-        selectedCompanyOptions,
-    ]);
+        const tempdata = sortedData;
+        setFilteredInvoices(tempdata);
+        setSortedData(tempdata);
+    }, [sortedData]);
+    useEffect(
+        () => {
+            setFilteredInvoices(filterRecords(filterbyState(invoices)));
+            setOriginalData(filterRecords(filterbyState(invoices)));
+        },
+        [
+            invoices,
+            loadingInvoices,
+            activeJob,
+            startDate,
+            endDate,
+            invoiceNbSearch,
+            selectedStateOptions,
+            selectedSupplierOptions,
+            selectedCompanyOptions,
+        ],
+        []
+    );
     function getOldestInvoiceDate(data) {
         // Filter out elements with invalid 'CreatedDate' values
         let validData = [];
@@ -271,17 +349,21 @@ export default function InvoicesPage({
         { key: "ProcessedBank", label: "Processed Bank", Filter: TextFilter },
         { key: "PaymentDate", label: "Payment Date", Filter: TextFilter },
         { key: "ApprovalStatus", label: "Approval Status", Filter: TextFilter },
+        { key: "FirstApprovedBy", label: "Approved By", Filter: TextFilter },
         { key: "SecondApproval", label: "Second Approval", Filter: TextFilter },
+        {
+            key: "SecondApprovedBy",
+            label: "Authorized By ",
+            Filter: TextFilter,
+        },
         { key: "PaymentStatus", label: "Payment Status", Filter: TextFilter },
         { key: "PodRequired", label: "Pod Required", Filter: TextFilter },
         { key: "Description", label: "Description", Filter: TextFilter },
-        // { key: "AddedBy", label: "Added By" },
-        // { key: "AddedAt", label: "Added At" },
     ];
-    function changeFilterTab(index) {
-        setCurrentPage(0);
+    function changeFilterTabfirst(index) {
         setSelectedRecords([]);
         setActiveJob(index);
+        // setCurrentPage(0)
         const updatedElements = invoicesfilterTabs
             .filter((item) => item.role.includes(currentUser.role_id))
             .map((element) => {
@@ -293,6 +375,24 @@ export default function InvoicesPage({
             });
         setInvoicesfilterTabs(updatedElements);
     }
+    function changeFilterTab(index) {
+        setSelectedRecords([]);
+        setActiveJob(index);
+        setCurrentPage(0)
+        const updatedElements = invoicesfilterTabs
+            .filter((item) => item.role.includes(currentUser.role_id))
+            .map((element) => {
+                if (element.id === index) {
+                    return { ...element, current: true };
+                } else {
+                    return { ...element, current: false };
+                }
+            });
+        setInvoicesfilterTabs(updatedElements);
+    }
+    useEffect(() => {
+        changeFilterTabfirst(activeJob);
+    }, []);
     function handleCreate() {
         setInvoice(null);
         setActiveIndexInv(7);
@@ -356,6 +456,52 @@ export default function InvoicesPage({
                 console.log(err);
             });
     }
+    function ApproveSelected() {
+        let toApprove = selectedRecords
+            .map((item) => {
+                return { ["OwnerId"]: item["InvoiceId"] };
+            });
+            let type = 0;
+            if (currentUser.role_id == 10) {
+                type = 2;
+            } else {
+                type = 1;
+            }
+            const inputValues = {
+                ApprovalModel: 1,
+                ApprovalType: type,
+                MainId: toApprove,
+                StatusId: 2,
+                AddedBy: currentUser.user_id,
+            }; 
+            axios
+                .post(`${url}api/GTIS/ApprovalStatus`, inputValues, {
+                    headers: {
+                        UserId: currentUser.user_id,
+                    },
+                })
+                .then((res) => {
+                    getInvoices();
+                    if (
+                        hubConnection &&
+                        hubConnection.state === signalR.HubConnectionState.Connected
+                    ) {console.log(res.data)
+                        
+                        res.data.map((item)=>{
+                            let array =[]
+                            array.push(item)
+                            hubConnection
+                            .invoke("SendNotification", array)
+                            .catch((error) => {
+                                console.error("Error sending notification:", error);
+                            });})
+                        
+                    }
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        }
     function showhideCreateButton() {
         if (currentUser.role_id == 10) {
             return false;
@@ -377,7 +523,9 @@ export default function InvoicesPage({
         "Processed Bank",
         "Payment Date",
         "Approval Status",
+        "Approved By",
         "Second Approval",
+        "Authorized By",
         "Payment Status",
         "Pod Required",
         "Description",
@@ -474,6 +622,10 @@ export default function InvoicesPage({
                                 category.CategoryId === object.CategoryId
                         );
                         acc[columnKey] = Category?.CategoryName;
+                    } else if (columnKey === "AuthorizedBy") {
+                        acc[columnKey] = object?.SecondApprovedBy;
+                    } else if (columnKey === "ApprovedBy") {
+                        acc[columnKey] = object?.FirstApprovedBy;
                     } else {
                         acc[column.replace(/\s+/g, "")] =
                             object[column.replace(/\s+/g, "")];
@@ -528,15 +680,13 @@ export default function InvoicesPage({
         });
     }
 
-    useEffect(() => {
-        setFilteredInvoices(sortedData);
-    }, [sortedData]);
-
     return (
         <div className="p-5 bg-smooth">
             <div className="flex gap-x-1 items-center">
                 <h1 className="font-bold text-dark text-3xl">Invoices</h1>{" "}
-                <p className="mt-auto text-gray-400">({invoices?.length})</p>
+                <p className="mt-auto text-gray-400">
+                    ({filteredInvoices?.length})
+                </p>
                 <div className=" ml-auto flex gap-x-2">
                     {selectedRecords.length > 0 && activeJob == 2 ? (
                         <button
@@ -549,6 +699,19 @@ export default function InvoicesPage({
                             <CreditCardIcon className="h-5 mr-2" />
                             <span>Pay</span>
                         </button>
+                    ) : null}
+                    {selectedRecords.length > 0 &&
+                    activeJob == 1 &&
+                    (currentUser.role_id == 10 ||
+                        currentUser.role_id == 6 ||
+                        currentUser.role_id == 1) ? (
+                        <div className=" ">
+                            <InvoicesButton
+                                name="Approve"
+                                onClick={() => ApproveSelected()}
+                                className="w-auto ml-auto"
+                            />
+                        </div>
                     ) : null}
                     {selectedRecords.length > 0 ? (
                         <div className=" ">
@@ -589,6 +752,9 @@ export default function InvoicesPage({
                         </svg>
                         <input
                             type="text"
+                            defaultValue={
+                                invoiceNbSearch ? invoiceNbSearch : ""
+                            }
                             placeholder="Invoice No"
                             onChange={handleSearchChange}
                             className="w-full py-0.5 h-[35px] pl-12 pr-4 text-gray-500 border-none rounded-md outline-none "
@@ -624,18 +790,18 @@ export default function InvoicesPage({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-3 mt-5">
                 {!AssistantOrManager() ? (
                     <div>
-                        <div className="mt-2 w-full sm:mt-0 ">
+                        <div className="mt-2 w-full sm:mt-0">
                             <Select
                                 placeholder={<div>State... </div>}
                                 // styles={customStyles}
                                 isMulti
                                 name="colors"
-                                value={selectedState}
+                                defaultValue={selectedState}
                                 isClearable={true}
                                 isSearchable={true}
                                 options={stateSelectOption(states)}
                                 onChange={handleStateSelectChange}
-                                className="basic-multi-select text-red"
+                                className="basic-multi-select z-40"
                                 classNamePrefix="select"
                                 id="stateSelect"
                             />
@@ -650,12 +816,12 @@ export default function InvoicesPage({
                             // styles={customStyles}
                             isMulti
                             name="colors"
-                            value={selectedSupplier}
+                            defaultValue={selectedSupplier}
                             isClearable={true}
                             isSearchable={true}
                             options={supplierSelectOption(supplierData)}
                             onChange={handleSupplierSelectChange}
-                            className="basic-multi-select text-red "
+                            className="basic-multi-select z-30"
                             classNamePrefix="select"
                         />
                     </div>
@@ -668,12 +834,12 @@ export default function InvoicesPage({
                             // styles={customStyles}
                             isMulti
                             name="colors"
-                            value={selectedCompany}
+                            defaultValue={selectedCompany}
                             isClearable={true}
                             isSearchable={true}
                             options={companySelectOption(companies)}
                             onChange={handleCompanySelectChange}
-                            className="basic-multi-select text-red "
+                            className="basic-multi-select z-20"
                             classNamePrefix="select"
                         />
                     </div>
@@ -699,7 +865,7 @@ export default function InvoicesPage({
                     ))}
             </ul>
             {loadingInvoices ? (
-                <div className="min-h-screen md:pl-20 pt-16 h-full flex flex-col items-center justify-center">
+                <div className="md:pl-20 pt-16 h-full flex flex-col items-center justify-center">
                     <div className="flex items-center justify-center">
                         <div
                             className={`h-5 w-5 bg-goldd rounded-full mr-5 animate-bounce`}
@@ -736,6 +902,8 @@ export default function InvoicesPage({
                         companies={companies}
                         categories={categories}
                         setInvoice={setInvoice}
+                        scroll={scrollInvoice}
+                        setScroll={setScrollInvoice}
                         currentPage={currentPage}
                         setCurrentPage={setCurrentPage}
                         setActiveIndexInv={setActiveIndexInv}

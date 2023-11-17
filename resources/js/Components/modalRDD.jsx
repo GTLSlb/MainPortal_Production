@@ -26,6 +26,12 @@ export default function ModalRDD({
     const [audit, setAudit] = useState();
     const [reasonname, setReasonName] = useState();
     const [selected, setSelected] = useState();
+    const [showDesc, setShowDesc] = useState();
+
+    function handleReasonChange(event) {
+        setSelected(event);
+        setShowDesc(event);
+    }
 
     function classNames(...classes) {
         return classes.filter(Boolean).join(" ");
@@ -147,7 +153,7 @@ export default function ModalRDD({
 
                 <form onSubmit={handleSubmit}>
                 {error && <div className="text-red-500 mb-4">{error}</div>}
-                    <Listbox value={selected} onChange={setSelected}>
+                    <Listbox value={selected} onChange={handleReasonChange}>
                         {({ open }) => (
                             <>
                                 <Listbox.Label className="block text-sm font-medium leading-6 text-gray-900">
@@ -237,6 +243,13 @@ export default function ModalRDD({
                             </>
                         )}
                     </Listbox>
+                    {showDesc && selected && (
+                        <div>
+                            <div className="text-sm p-2">
+                                {showDesc.ReasonDesc}
+                            </div>
+                        </div>
+                    )}
                     <div className="mt-2">
                         <label
                             htmlFor="comment"

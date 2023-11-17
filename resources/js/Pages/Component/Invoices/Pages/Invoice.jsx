@@ -4,6 +4,7 @@ import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import PdfPreview from "../components/PdfPreview";
 import moment from "moment";
 import axios from "axios";
+import * as signalR from "@microsoft/signalr";
 
 export default function Invoice({
     setActiveIndexInv,
@@ -18,13 +19,47 @@ export default function Invoice({
     services,
     categories,
     currentUser,
+    hubConnection,
 }) {
+    useEffect(() => {
+        getInvoicesbyId(invoiceDetails.InvoiceId);
+    }, []);
+    useEffect(() => {
+        authorizeToEditReject();
+        authorityToEditApprove();
+        setauthorizeToPay(authorityToPay());
+    }, [invoiceDetails]);
+    function getInvoicesbyId(InvoiceId) {
+        axios
+            .get(`${url}/api/GTIS/Invoices`, {
+                headers: {
+                    UserId: currentUser.user_id,
+                    InvoiceId: InvoiceId,
+                },
+            })
+            .then((res) => {
+                const x = JSON.stringify(res.data);
+                const parsedDataPromise = new Promise((resolve, reject) => {
+                    const parsedData = JSON.parse(x);
+                    resolve(parsedData);
+                });
+                parsedDataPromise.then((parsedData) => {
+                    setInvoiceDetails(parsedData[0]);
+                    authorizeToEditReject();
+                    authorityToPay();
+                    authorityToEditApprove();
+                    setActiveIndexInv(6);
+                });
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
     const [isLoadingApprove, SetIsLoadingApprove] = useState(false);
     const [createdby, setCreatedBy] = useState();
     axios.get(`/findUserById/${invoiceDetails.AddedBy}`).then((res) => {
         setCreatedBy(res.data.user_name);
     });
-
     function GoBack() {
         setActiveIndexInv(1);
     }
@@ -33,7 +68,7 @@ export default function Invoice({
         return `../../../../../../Invoices/${filename}`; // Replace 'invoices' with the appropriate folder name
     };
     function authorityToEditApprove() {
-        if (currentUser.role_id == 6) {
+        if (currentUser.role_id == 6 || currentUser.role_id == 9) {
             // if state manager
             if (invoiceDetails.SecondApproval == 2) {
                 //if second Approved Already
@@ -47,8 +82,9 @@ export default function Invoice({
         } else if (currentUser.role_id == 10) {
             // if CEO
             if (invoiceDetails.SecondApproval == 2) {
-                //  And if it's already approved
-                return false; // dont't show the approve button
+                // payment type 2 = >  cash 
+                // payment status true => paid
+                return false;
             } else {
                 return true; // else show it
             }
@@ -72,6 +108,27 @@ export default function Invoice({
             return false;
         }
     }
+    function convertUtcToUserTimezone(utcDateString) {
+        // Create a Date object from the UTC date string
+        const utcDate = new Date(utcDateString);
+        
+        // Get the current user's timezone
+        const targetTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+        const formatter = new Intl.DateTimeFormat("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            timeZone: targetTimezone,
+        });
+    
+        const convertedDate = formatter.format(utcDate);
+        return convertedDate;
+    }
+    
     useEffect(() => {
         if (showHidelogsSection() == true) {
             const fetchLogsAndReplaceData = async () => {
@@ -94,10 +151,14 @@ export default function Invoice({
                     const processedData = await Promise.all(
                         logsData.map(async (item) => {
                             const newItem = { ...item };
-
                             if (item.CreatedBy) {
                                 newItem.CreatedBy = await searchUserByName(
                                     item.CreatedBy
+                                );
+                            }
+                            if (item.CreatedAt) {
+                                newItem.CreatedAt = convertUtcToUserTimezone(
+                                    item.CreatedAt + "Z"
                                 );
                             }
                             if (item.Approval) {
@@ -106,6 +167,10 @@ export default function Invoice({
                                         approval.ApprovedBy =
                                             await searchUserByName(
                                                 approval.ApprovedBy
+                                            );
+                                        approval.ApprovedAt =
+                                            convertUtcToUserTimezone(
+                                                approval.ApprovedAt + "Z"
                                             );
                                         return approval;
                                     })
@@ -116,6 +181,9 @@ export default function Invoice({
                                     item.Payment.map(async (match) => {
                                         match.PaidBy = await searchUserByName(
                                             match.PaidBy
+                                        );
+                                        match.PaidAt = convertUtcToUserTimezone(
+                                            match.PaidAt + "Z"
                                         );
                                         return match;
                                     })
@@ -136,7 +204,7 @@ export default function Invoice({
     }, []);
 
     function authorizeToEditReject() {
-        if (currentUser.role_id == 6) {
+        if (currentUser.role_id == 6 || currentUser.role_id == 9) {
             // If State Manager
             if (invoiceDetails.SecondApproval == 1) {
                 // if there's no second approval or rejection
@@ -147,7 +215,7 @@ export default function Invoice({
                         return true; // Show the rejection Button
                     } else {
                         // if already paid
-                        return true; //Dont Show the rejection Button
+                        return false; //Dont Show the rejection Button
                     }
                 }
             }
@@ -155,7 +223,13 @@ export default function Invoice({
             // if CEO
             if (invoiceDetails.SecondApproval != 3) {
                 //  if not already rejected
-                return true;
+                if (
+                    invoiceDetails.PaymentTypeId == 2 &&
+                    invoiceDetails.PaymentStatus == true
+                ) {
+                    // if payment type is cash && it's already paid
+                    return false;
+                } else return true;
             }
         } else {
             return false; // can't pay
@@ -179,7 +253,7 @@ export default function Invoice({
     );
     const [authorizeToPay, setauthorizeToPay] = useState(authorityToPay());
     function PayInvoice(status) {
-        SetIsLoadingApprove(true)
+        SetIsLoadingApprove(true);
         const inputValues = {
             InvoiceId: invoiceDetails.InvoiceId,
         };
@@ -190,7 +264,9 @@ export default function Invoice({
                     Payment_Status: status,
                 },
             })
+            
             .then((res) => {
+                console.log(res)
                 getInvoices();
                 if (status == 1) {
                     AlertToast("Paid Successfully", 1);
@@ -198,16 +274,18 @@ export default function Invoice({
                     AlertToast("Not Paid Successfully", 1);
                 }
                 setActiveIndexInv(1);
-                SetIsLoadingApprove(false)
+                SetIsLoadingApprove(false);
             })
             .catch((err) => {
+
                 AlertToast("Error please try again.", 2);
                 console.log(err);
-                SetIsLoadingApprove(false)
+                SetIsLoadingApprove(false);
             });
     }
     function ApproveInvoice(status) {
-        SetIsLoadingApprove(true)
+        SetIsLoadingApprove(true);
+        let toApprove={OwnerId:invoiceDetails?.InvoiceId}
         let type = 0;
         if (currentUser.role_id == 10) {
             type = 2;
@@ -217,7 +295,7 @@ export default function Invoice({
         const inputValues = {
             ApprovalModel: 1,
             ApprovalType: type,
-            MainId: invoiceDetails?.InvoiceId,
+            MainId: toApprove,
             StatusId: status,
             AddedBy: currentUser.user_id,
         };
@@ -228,6 +306,7 @@ export default function Invoice({
                 },
             })
             .then((res) => {
+                console.log(res.data)
                 getInvoices();
                 if (status == 2) {
                     AlertToast("Approved Successfully", 1);
@@ -235,10 +314,20 @@ export default function Invoice({
                     AlertToast("Rejected Successfully", 1);
                 }
                 setActiveIndexInv(1);
-                SetIsLoadingApprove(false)
+                SetIsLoadingApprove(false);
+                if (
+                    hubConnection &&
+                    hubConnection.state === signalR.HubConnectionState.Connected
+                ) {
+                    hubConnection
+                        .invoke("SendNotification", res.data)
+                        .catch((error) => {
+                            console.error("Error sending notification:", error);
+                        });
+                }
             })
             .catch((err) => {
-                SetIsLoadingApprove(false)
+                SetIsLoadingApprove(false);
                 AlertToast("Error please try again.", 2);
                 console.log(err);
             });
@@ -335,22 +424,30 @@ export default function Invoice({
                                 ? "Cash"
                                 : ""}
                         </p>
-                        <h1 className="text-gray-400">Payment Bank:</h1>
-                        <p className="font-bold">
-                            {invoiceDetails.ProcessedBank}
-                        </p>
-                        <h1 className="text-gray-400">Payment Date:</h1>
-                        <p className="font-bold">
-                            {invoiceDetails.PaymentDate
-                                ? moment(
-                                      invoiceDetails.PaymentDate.replace(
-                                          "T",
-                                          " "
-                                      ),
-                                      "YYYY-MM-DD"
-                                  ).format("DD-MM-YYYY")
-                                : ""}
-                        </p>
+                        {invoiceDetails.PaymentTypeId === 1 ? (
+                            <div className="col-span-2 grid grid-cols-2">
+                                <h1 className="text-gray-400">Payment Bank:</h1>
+                                <p className="font-bold">
+                                    {invoiceDetails.ProcessedBank}
+                                </p>
+                            </div>
+                        ) : null}
+                        {invoiceDetails.PaymentTypeId === 1 ? (
+                            <div className="col-span-2 grid grid-cols-2">
+                                <h1 className="text-gray-400">Payment Date:</h1>
+                                <p className="font-bold">
+                                    {invoiceDetails.PaymentDate
+                                        ? moment(
+                                              invoiceDetails.PaymentDate.replace(
+                                                  "T",
+                                                  " "
+                                              ),
+                                              "YYYY-MM-DD"
+                                          ).format("DD-MM-YYYY")
+                                        : ""}
+                                </p>
+                            </div>
+                        ) : null}
                         <h1 className="text-gray-400">Invoice Date:</h1>
                         <p className="font-bold">
                             {invoiceDetails.InvoiceDate
@@ -473,7 +570,7 @@ export default function Invoice({
                                 {authorizeToEditReject() ? (
                                     <div className="flex justify-end w-full gap-x-2">
                                         <InvoicesButton
-                                        disabled={isLoadingApprove}
+                                            disabled={isLoadingApprove}
                                             name="Reject"
                                             onClick={() => {
                                                 ApproveInvoice(3);
@@ -488,7 +585,7 @@ export default function Invoice({
                                 {" "}
                                 {authorizeToPay ? (
                                     <div className="flex justify-end w-full gap-x-2">
-                                        {invoiceDetails?.PaymentStatus ==
+                                        {invoiceDetails?.PaymentStatus == 
                                         false ? (
                                             <InvoicesButton
                                                 name="Pay"
@@ -534,8 +631,8 @@ export default function Invoice({
                                             " "
                                         ),
 
-                                        "YYYY-MM-DD hh:mm:ss"
-                                    ).format("YYYY-MM-DD hh:mm:ss") ==
+                                        "MM/DD/YYYY, h:mm:ss A"
+                                    ).format("YYYY-MM-DD hh:mm A") ==
                                     "Invalid date"
                                         ? ""
                                         : moment(
@@ -544,8 +641,8 @@ export default function Invoice({
                                                   " "
                                               ),
 
-                                              "YYYY-MM-DD hh:mm:ss"
-                                          ).format("YYYY-MM-DD hh:mm:ss")}
+                                              "MM/DD/YYYY, h:mm:ss A"
+                                          ).format("YYYY-MM-DD hh:mm A")}
                                 </div>
                                 <ol class="relative border-l border-gray-200 dark:border-gray-700">
                                     {processedData[0]?.Approval?.map((item) => (
@@ -558,9 +655,9 @@ export default function Invoice({
                                                         " "
                                                     ),
 
-                                                    "YYYY-MM-DD HH:mm:ss"
+                                                    "MM/DD/YYYY, h:mm:ss A"
                                                 ).format(
-                                                    "YYYY-MM-DD HH:mm:a"
+                                                    "YYYY-MM-DD hh:mm A"
                                                 ) == "Invalid date"
                                                     ? ""
                                                     : moment(
@@ -569,9 +666,9 @@ export default function Invoice({
                                                               " "
                                                           ),
 
-                                                          "YYYY-MM-DD HH:mm:ss"
+                                                          "MM/DD/YYYY, h:mm:ss A"
                                                       ).format(
-                                                          "YYYY-MM-DD HH:mm:a"
+                                                          "YYYY-MM-DD hh:mm A"
                                                       )}
                                             </time>
                                             <h3 class="text-lg font-semibold text-gray-900">
@@ -592,8 +689,8 @@ export default function Invoice({
                                                         "T",
                                                         " "
                                                     ),
-                                                    "YYYY-MM-DD HH:mm:ss"
-                                                ).format("YYYY-MM-DD HH:mm:a")}
+                                                    "MM/DD/YYYY, h:mm:ss A"
+                                                ).format("YYYY-MM-DD hh:mm A")}
                                             </time>
                                             <h3 class="text-lg font-semibold text-gray-900">
                                                 {item.PaidBy} has{" "}

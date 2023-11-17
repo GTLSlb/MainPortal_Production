@@ -54,7 +54,7 @@ export default function SupportModal({
             isOpen={isOpen}
             onRequestClose={handlePopUpClose}
             className="fixed inset-0 flex items-center justify-center"
-            overlayClassName="fixed inset-0 bg-black bg-opacity-60"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-60 z-50"
         >
             <div className="bg-white w-96 rounded-lg shadow-lg p-6  h-[30rem]">
             <div className="flex justify-end">

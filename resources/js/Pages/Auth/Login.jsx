@@ -206,9 +206,9 @@ export default function Login({ status, canResetPassword }) {
                                         className="mt-2"
                                     />
                                 </div>
-                                <a className="text-white" href="/auth/azure">
+                                {/* <a className="text-white" href="/auth/azure">
                                     Login with Microsoft Azure
-                                </a>
+                                </a> */}
                             </div>
                             <div className="flex items-center justify-between">
                                 <button

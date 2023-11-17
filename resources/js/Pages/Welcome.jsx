@@ -3,6 +3,7 @@ import { Dialog } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import LogoWhite from "../assets/pictures/LogoWhite.webp";
 import { Head } from "@inertiajs/react";
+import { Link } from "@inertiajs/inertia-react";
 import { Link as ScrollLink } from "react-scroll";
 import ContatcUs from "./Component/landingPage/ContactUs";
 import Footer from "./Component/landingPage/Footer";
@@ -29,15 +30,19 @@ import {
     PhoneIcon,
     BellAlertIcon,
 } from "@heroicons/react/20/solid";
+import CookiePopup from "./Component/CookiePopup";
+import GoingGreenSection from "./Component/landingPage/GoingGreenSection";
 
 const navigation = [
-    { name: "Services", href: "services" },
-    { name: "About Us", href: "aboutus" },
-    { name: "Technologies", href: "technologies" },
-    { name: "News", href: "news" },
-    { name: "Opportunities", href: "opportunities" },
-    { name: "Contact Us", href: "contact" },
+    { id:1, name: "About Us", href: "aboutus", link: false },
+    { id:2, name: "Services", href: "services", link: false },
+    { id:3, name: "Technologies", href: "technologies", link: false },
+    { id:4, name: "Media & News", href: "news", link: false },
+    { id:5, name: "Careers", href: "/opportunities", link: true },
+    { id:6, name: "Contact Us", href: "contact", link: false },
+    { id:7, name: "Going Green", href: "/goinggreen",link: true },
 ];
+
 // function scrollToDiv (myDivRef)  {
 //     myDivRef.current.scrollIntoView({ behavior: 'smooth' });
 //   };
@@ -90,7 +95,21 @@ export default function Welcome(props) {
             <Head title="Welcome" />
             <div className="relative isolate bg-dark">
                 <div className="w-full h-6 bg-goldd bg-gradient-to-r from-goldl via-goldt to-goldd ">
-                    <div className="mx-auto sm:max-w-7xl sm:px-6 lg:px-8 flex items-center h-full justify-end">
+                <div className="mx-auto sm:max-w-7xl sm:px-6 lg:px-8 flex items-center h-full justify-end lg:justify-between">
+                        <div className="hidden lg:flex gap-x-7">
+                            <a
+                                href="#contact"
+                                className="text-xs sm:text-sm font-bold flex h-full items-center"
+                            >
+                                Contact Us
+                            </a>
+                            <a
+                                href="/opportunities"
+                                className="text-xs sm:text-sm font-bold flex h-full items-center"
+                            >
+                                Careers
+                            </a>
+                        </div>
                         <a
                             href="tel:+180040306"
                             className="text-xs sm:text-sm font-bold flex h-full items-center"
@@ -194,43 +213,31 @@ export default function Welcome(props) {
                         </div>
                         <div className="hidden lg:flex lg:gap-x-8">
                             {navigation.map((item) => (
-                                <ScrollLink
-                                    key={item.name}
-                                    to={item.href}
-                                    smooth={true}
-                                    className="hover:cursor-pointer h-8 hover:border-b hover:border-goldt p-1 hover:text-white text-md font-semibold leading-6 text-goldt"
-                                >
-                                    {item.name}
-                                </ScrollLink>
+                                 item.id == 5||item.id==6?null:
+                                <div key={item.name}>
+                                    {item.link ? (
+                                        <Link
+                                            key={item.name}
+                                            href={item.href}
+                                            // data={item.ref}
+                                            // smooth={true}
+                                            className="hover:cursor-pointer hover:border-b hover:border-goldt p-1   text-[1rem] font-semibold leading-6 text-goldt hover:text-white"
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    ) : (
+                                        <ScrollLink
+                                            key={item.name}
+                                            to={item.href}
+                                            smooth={true}
+                                            className="hover:cursor-pointer h-8 hover:border-b hover:border-goldt p-1 hover:text-white text-md font-semibold leading-6 text-goldt"
+                                        >
+                                            {item.name}
+                                        </ScrollLink>
+                                    )}
+                                </div>
                             ))}
                         </div>
-                        {/* <div className="hidden lg:flex lg:gap-x-8">
-      {navigation.map((item, index) => (
-        <div
-          key={item.name}
-          className={`relative ${index === 0 && 'group'}`}
-          onMouseEnter={() => setShowMoreLinks(true)}
-          onMouseLeave={() => setShowMoreLinks(false)}
-        >
-          <ScrollLink
-            to={item.href}
-            smooth={true}
-            className="hover:cursor-pointer h-8 hover:border-b hover:border-goldt p-1 hover:text-white text-md font-semibold leading-6 text-goldt"
-          >
-            {item.name}
-          </ScrollLink>
-
-          {index === 0 && showMoreLinks && (
-            <div className="absolute left-0 mt-2 bg-white rounded-lg shadow-lg">
-              <div className="py-2 px-4">
-                <div>1</div>
-                <div>2</div>
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div> */}
                         <div className="hidden  lg:flex lg:flex-1 lg:justify-end">
                             {/* <a
                                 href="/login"
@@ -348,17 +355,39 @@ export default function Welcome(props) {
                                 <div className="-my-6 divide-y divide-gray-500/10">
                                     <div className="space-y-2 py-6">
                                         {navigation.map((item) => (
-                                            <ScrollLink
-                                                key={item.name}
-                                                to={item.href}
-                                                smooth={true}
-                                                onClick={() =>
-                                                    setMobileMenuOpen(false)
-                                                }
-                                                className="hover:cursor-pointer  -mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-goldt hover:bg-gray-400/10"
-                                            >
-                                                {item.name}
-                                            </ScrollLink>
+                                            // <ScrollLink
+                                            //     key={item.name}
+                                            //     to={item.href}
+                                            //     smooth={true}
+                                            //     onClick={() =>
+                                            //         setMobileMenuOpen(false)
+                                            //     }
+                                            //     className="hover:cursor-pointer  -mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-goldt hover:bg-gray-400/10"
+                                            // >
+                                            //     {item.name}
+                                            // </ScrollLink>
+                                             <div key={item.name}>
+                                             {item.link ? (
+                                                 <Link
+                                                     key={item.name}
+                                                     href={item.href}
+                                                     // data={item.ref}
+                                                     // smooth={true}
+                                                     className="hover:cursor-pointer  -mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-goldt hover:bg-gray-400/10"
+                                                     >
+                                                     {item.name}
+                                                 </Link>
+                                             ) : (
+                                                 <ScrollLink
+                                                     key={item.name}
+                                                     to={item.href}
+                                                     smooth={true}
+                                                     className="hover:cursor-pointer  -mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-goldt hover:bg-gray-400/10"
+                                                     >
+                                                     {item.name}
+                                                 </ScrollLink>
+                                             )}
+                                         </div>
                                         ))}
                                     </div>
                                     {/* <div className="py-6">
@@ -380,7 +409,8 @@ export default function Welcome(props) {
 
                 <VideoHeader />
                 <PrimaryServices />
-                <Benefits />
+                <GoingGreenSection/>
+                {/* <Benefits /> */}
                 <Process />
                 <Features />
                 <Video />
@@ -388,16 +418,17 @@ export default function Welcome(props) {
                 <AboutUs />
                 <Technologies />
                 <Softwares />
-                <WhyGoldTiger />
+                {/* <WhyGoldTiger /> */}
                 <Certifiactesw />
 
                 <News />
-                <OpportuniotiesSection />
+                {/* <OpportuniotiesSection /> */}
                 <ContatcUs />
                 <Branches />
 
                 {/* <Partners/> */}
                 <Footer />
+                {/* <CookiePopup/> */}
                 <ScrollToTopButton />
                 <style>{`
             .max-w-8xl{

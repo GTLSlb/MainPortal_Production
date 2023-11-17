@@ -231,7 +231,7 @@ export default function SafetyModal({
                                 id="MainCause"
                                 name="MainCause"
                                 className="w-full border border-gray-300 rounded px-3 py-2"
-                                placeholder="Enter the Resolution of the report"
+                                placeholder="Enter the Main cause of the safety issue"
                                 defaultValue={modalMainCause}
                                 value={formValues.MainCause}
                                 onChange={handleChange}

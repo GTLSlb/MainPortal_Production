@@ -183,7 +183,7 @@ export default function SupplierTable({
                                                     onClick={() => {
                                                         editSupplier(row);
                                                     }}
-                                                    className=" text-blue-500 hover:text-blue-900 flex gap-x-2 justify-center mt-2"
+                                                    className=" text-blue-500 hover:text-blue-900 flex gap-x-2 justify-center mt-2 mr-2"
                                                 >
                                                     <PencilIcon className="text-blue-400 w-5 h-5" />
                                                     <span className="underline" > Edit</span>
@@ -217,6 +217,7 @@ export default function SupplierTable({
                 <ReactPaginate
                     previousLabel={"← Previous"}
                     nextLabel={"Next →"}
+                    initialPage={currentPage}
                     pageCount={pageCount}
                     onPageChange={handlePageClick}
                     containerClassName={"flex justify-center items-center mt-4"}

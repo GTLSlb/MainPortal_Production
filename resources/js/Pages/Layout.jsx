@@ -1,23 +1,25 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { useEffect } from "react";
-import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import MainSidebar from "../Components/Main-sidebar";
 import MainNavbar from "../Components/Main-navbar";
 import Gtam from "@/Pages/GTAM";
 import Gtms from "@/Pages/GTMS";
 import Gtw from "@/Pages/GTW";
 import Gtrs from "@/Pages/GTRS";
-import NmainSidebar from "@/Components/Nmain-sidebar";
-import KPI from "./Component/KPI";
 import axios from "axios";
-import Support from "./Support";
 import Invoices from "./Invoices";
+import * as signalR from "@microsoft/signalr";
+import * as signalRCore from "@microsoft/signalr";
 
+import hubConnection from "./SignalR";
 // import AllRoutes from "./RoutesPage";
 
 export default function Sidebar(Boolean) {
     const [currentUser, setcurrentUser] = useState(null);
     const [sessionData, setSessionData] = useState(null);
+    const [notification, setNotification] = useState();
+
+    const Invoicesurl = "https://gtlslebs06-vm.gtls.com.au:147/";
 
     useEffect(() => {
         axios
@@ -30,15 +32,19 @@ export default function Sidebar(Boolean) {
     useEffect(() => {}, [currentUser]);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activePage, setactivePage] = useState();
+    const [activeIndexGtam, setActiveIndexGtam] = useState(1);
     const [activeCon, setactiveCon] = useState(0);
     const [loadingGtrs, setLoadingGtrs] = useState(false);
     const [activeIndexGTRS, setActiveIndexGTRS] = useState(0);
     const [activeHeader, setactiveHeader] = useState("null");
     const [currentComponent, setcurrentComponent] = useState([]);
     const [activeIndexInv, setActiveIndexInv] = useState(1);
+    const [invoiceDetails, setInvoiceDetails] = useState();
+    const [PODetails, setPODetails] = useState();
+
     const components = [
         <Gtms />,
-        <Gtam />,
+        <Gtam currentUser={currentUser} activeIndexGtam={activeIndexGtam} setActiveIndexGtam={setActiveIndexGtam} />,
         <Gtw />,
         <Gtrs
             sessionData={sessionData}
@@ -55,6 +61,12 @@ export default function Sidebar(Boolean) {
             setCurrentUser={setcurrentUser}
         />,
         <Invoices
+            url={Invoicesurl}
+            PODetails={PODetails}
+            setPODetails={setPODetails}
+            invoiceDetails={invoiceDetails}
+            setInvoiceDetails={setInvoiceDetails}
+            hubConnection={hubConnection}
             currentUser={currentUser}
             activeIndexInv={activeIndexInv}
             setActiveIndexInv={setActiveIndexInv}
@@ -70,6 +82,7 @@ export default function Sidebar(Boolean) {
                     {/* <NmainSidebar/> */}
                     <MainSidebar
                         setMobileMenuOpen={setMobileMenuOpen}
+                        setActiveIndexGtam={setActiveIndexGtam}
                         mobileMenuOpen={mobileMenuOpen}
                         activePage={activePage}
                         setactivePage={setactivePage}
@@ -78,6 +91,14 @@ export default function Sidebar(Boolean) {
                         currentUser={currentUser}
                     />
                     <MainNavbar
+                        url={Invoicesurl}
+                        currentUser={currentUser}
+                        PODetails={PODetails}
+                        setPODetails={setPODetails}
+                        invoiceDetails={invoiceDetails}
+                        setInvoiceDetails={setInvoiceDetails}
+                        setActiveIndexInv={setActiveIndexInv}
+                        hubConnection={hubConnection}
                         activePage={activePage}
                         setMobileMenuOpen={setMobileMenuOpen}
                         activeIndexGTRS={activeIndexGTRS}

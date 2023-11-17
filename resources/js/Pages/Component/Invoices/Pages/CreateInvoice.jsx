@@ -1,11 +1,15 @@
 import InvoicesButton from "../components/InvoicesButton";
 import { Fragment, useState, useEffect } from "react";
+import * as signalR from "@microsoft/signalr";
+import * as signalRCore from "@microsoft/signalr";
 import { Listbox, Transition } from "@headlessui/react";
 import {
     CheckIcon,
     ChevronUpDownIcon,
     ChevronLeftIcon,
 } from "@heroicons/react/20/solid";
+import Select from "react-select";
+
 import moment from "moment";
 import DropBox from "../components/DropBox";
 
@@ -25,41 +29,68 @@ export default function CreateInvoice({
     invoice,
     setInvoice,
     currentUser,
+    hubConnection,
+    invoices,
 }) {
     const [filteredCompanies, setFilteredCompanies] = useState([]);
     const [isLoading, SetIsLoading] = useState(false);
-
-    useEffect(() => {
-        // Filter the data based on userStateId
-        let filtered = [];
-        if (currentUser.role_id == 6 || currentUser.role_id == 7) {
-            filtered = companies.filter(
-                (item) =>
-                    item.StateId === currentUser.state && item.StatusId == 1
-            );
-        } else {
-            filtered = companies.filter((item) => item.StatusId == 1);
-        }
-
-        setFilteredCompanies(filtered);
-    }, [companies]);
+    const customStyles = {
+        control: (provided, state) => ({
+            ...provided,
+            minHeight: "unset",
+            height: "auto",
+            // Add more styles here as needed
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            color: "black",
+            // Add more styles here as needed
+        }),
+        multiValue: (provided) => ({
+            ...provided,
+            // width: "30%",
+            overflow: "hidden",
+        }),
+        valueContainer: (provided) => ({
+            ...provided,
+            width: "400px",
+            maxHeight: "500px", // Set the maximum height for the value container
+            overflow: "auto", // Enable scrolling if the content exceeds the maximum height
+            // fontSize: '10px',
+        }),
+        inputContainer: (provided) => ({
+            ...provided,
+            height: "100px",
+            border: "red",
+        }),
+        multiValueLabel: (provided) => ({
+            ...provided,
+            whiteSpace: "nowrap", // Prevent text wrapping
+            overflow: "hidden",
+            textOverflow: "ellipsis", // Display ellipsis when text overflows
+            fontSize: "12px",
+            // Add more styles here as needed
+        }),
+        // Add more style functions here as needed
+    };
     useEffect(() => {
         if (!invoice) {
             setSelectedCompany(filteredCompanies[0]);
         }
     }, [filteredCompanies]);
     const Amount = document.getElementById("Amount")?.value;
+    const [invoiceAmount, setInvoiceAmount] = useState(Amount);
+
+    useEffect(() => {
+        setInvoiceAmount(Amount);
+    }, [Amount]);
     const [selectedFiles, setSelectedFiles] = useState([]);
-    const [selectedState, setSelectedState] = useState(states[0]);
+    const [selectedState, setSelectedState] = useState();
     const [selectedCompany, setSelectedCompany] = useState(
         filteredCompanies[0]
     );
-    const [selectedSupplier, setSelectedSupplier] = useState(
-        supplierData.filter((item) => item.StatusId == 1)[0]
-    );
-    const [selectedCategory, setSelectedCategory] = useState(
-        categories.filter((item) => item.StatusId == 1)[0]
-    );
+    const [selectedSupplier, setSelectedSupplier] = useState();
+    const [selectedCategory, setSelectedCategory] = useState();
     const [approvalStatus, setApprovalStatus] = useState(1);
     const [secondapprovalStatus, setSecondApprovalStatus] = useState(1);
     const [existedFiles, setExistedFiles] = useState([]);
@@ -68,14 +99,14 @@ export default function CreateInvoice({
     const [stateField, setstateField] = useState(true);
     const [paymentField, setpaymentField] = useState();
     const [paymentType, setPaymentType] = useState(2);
-    const [paymentStatus, setPaymentStatus] = useState(1);
-    const [invoiceAmount, setInvoiceAmount] = useState(Amount);
+    const [paymentStatus, setPaymentStatus] = useState(0);
     const [processedBankValue, setProcessedBankValue] = useState("");
     const [paymentDateValue, setPaymentDateValue] = useState("");
     const [invoiceNo, setInvoiceNo] = useState("");
     const [invoiceDate, setInvoiceDate] = useState("");
     const [dueDate, setDueDate] = useState("");
     const [description, setDescription] = useState("");
+
     const handleResetValues = () => {
         setProcessedBankValue("");
         setPaymentDateValue("");
@@ -94,9 +125,7 @@ export default function CreateInvoice({
                 .delete("/delete-file", {
                     data: { file_names: fileNamesToDelete }, // Make sure the key matches your API parameter name
                 })
-                .then((res) => {
-                    console.log(res);
-                });
+                .then((res) => {});
             // Success message from the server
         } catch (error) {
             console.error("Error:", error);
@@ -105,6 +134,11 @@ export default function CreateInvoice({
     useEffect(() => {
         if (invoice) {
             setPaymentType(invoice.PaymentTypeId);
+            if (invoice.PodRequired == 1) {
+                setcheckbox(true);
+            } else {
+                setcheckbox(false);
+            }
         }
     }, []);
     function determinePaymentStatus() {
@@ -134,10 +168,10 @@ export default function CreateInvoice({
         }
     }
     function determineStateValue() {
-        if (currentUser.role_id == 6 || currentUser == 7) {
+        if (currentUser.role_id == 6 || currentUser.role_id == 7) {
             setStateValue(currentUser.state); // assign the state value of the request with the current user state when SM or assistant
         } else {
-            setStateValue(selectedState.StateId); // assign the state value of the request with the selected state in the field
+            setStateValue(selectedState?.value); // assign the state value of the request with the selected state in the field
         }
     }
     useEffect(() => {
@@ -145,28 +179,41 @@ export default function CreateInvoice({
     }, [paymentType]);
     useEffect(() => {
         determineStateValue();
-    }, [selectedState?.StateId]);
+    }, [selectedState?.value]);
     useEffect(() => {
         HideShowState();
         defineApprovalStatus();
         if (invoice) {
             //if editing an Invoice
             setSelectedState(
-                states?.find((state) => state.StateId === invoice.StateId)
-            );
-            setSelectedCompany(
-                companies?.find(
-                    (company) => company.CompanyId === invoice.CompanyId
+                transformToStateOption(
+                    states?.find((state) => state.StateId === invoice.StateId)
                 )
             );
+            setSelectedCompany(
+                transformToCompanyOption(
+                    companies?.find(
+                        (company) => company.CompanyId === invoice.CompanyId
+                    )
+                )
+            );
+            // setSelectedSupplier(
+            //     supplierData?.find(
+            //         (supplier) => supplier.SupplierId === invoice.SupplierId
+            //     )
+            // );
             setSelectedSupplier(
-                supplierData?.find(
-                    (supplier) => supplier.SupplierId === invoice.SupplierId
+                transformToSupplierOption(
+                    supplierData?.find(
+                        (supplier) => supplier.SupplierId === invoice.SupplierId
+                    )
                 )
             );
             setSelectedCategory(
-                categories?.find(
-                    (category) => category.CategoryId === invoice.CategoryId
+                transformToCategoryOption(
+                    categories?.find(
+                        (category) => category.CategoryId === invoice.CategoryId
+                    )
                 )
             );
         }
@@ -184,19 +231,10 @@ export default function CreateInvoice({
     useEffect(() => {
         if (!invoice) {
             handleResetValues();
-            setSelectedState(states[0]);
-            setSelectedCompany(
-                companies.filter((item) => item.StatusId == 1)[0]
-            );
-            setSelectedSupplier(
-                supplierData.filter((item) => item.StatusId == 1)[0]
-            );
-            setSelectedCategory(
-                categories.filter((item) => item.StatusId == 1)[0]
-            );
             setExistedFiles([]);
             setNewFiles([]);
             setSelectedFiles([]);
+            setInvoiceAmount();
             document.getElementById("InvoiceDate").value = "";
             document.getElementById("DueDate").value = "";
             document.getElementById("Amount").value = "";
@@ -255,6 +293,11 @@ export default function CreateInvoice({
             //   alert("Please select one or more files first.");
         }
     };
+    const [checkbox, setcheckbox] = useState(false);
+    // Function to handle changes in the input field
+    const handleInputChange = (event) => {
+        setcheckbox(event.target.checked);
+    };
     const handleCreateInvoice = () => {
         defineApprovalStatus();
         existedFiles.map((file) => {
@@ -267,7 +310,7 @@ export default function CreateInvoice({
         // Get the input values here and update the newobject state
         let PodRequired = 0;
         let Paid = 0;
-        if (document.getElementById("PodRequired")?.value == "on") {
+        if (checkbox == true) {
             PodRequired = 1;
         }
         if (document.getElementById("PaymentStatus")?.value == "on") {
@@ -278,12 +321,12 @@ export default function CreateInvoice({
             InvoiceId: invoice?.InvoiceId,
             InvoiceNo: document.getElementById("InvoiceNo").value,
             StateId: stateValue,
-            SupplierId: selectedSupplier.SupplierId,
-            CompanyId: selectedCompany.CompanyId,
-            CategoryId: selectedCategory.CategoryId,
+            SupplierId: selectedSupplier.value,
+            CompanyId: selectedCompany.value,
+            CategoryId: selectedCategory.value,
             InvoiceDate: document.getElementById("InvoiceDate").value,
             DueDate: document.getElementById("DueDate").value,
-            Amount: document.getElementById("Amount").value,
+            Amount: invoiceAmount,
             PaymentTypeId: document.getElementById("PaymentTypeId").value,
             ProcessedBank: document.getElementById("ProcessedBank")?.value,
             PaymentDate: document.getElementById("PaymentDate")?.value,
@@ -295,6 +338,18 @@ export default function CreateInvoice({
             Description: document.getElementById("Description").value,
             AddedBy: currentUser.user_id,
         };
+
+        const duplicateInvoice = invoices.find(
+            (mapppedinvoice) =>
+                mapppedinvoice.InvoiceNo === inputValues.InvoiceNo &&
+                mapppedinvoice.SupplierId === inputValues.SupplierId && 
+                mapppedinvoice.InvoiceId !== inputValues.InvoiceId
+        );
+        if (duplicateInvoice) {
+            SetIsLoading(false);
+            AlertToast("Invoice number for the same supplier already exist", 2);
+            return;
+        }
         axios
             .post(`${url}api/GTIS/Add/Invoice`, inputValues, {
                 headers: {
@@ -312,11 +367,23 @@ export default function CreateInvoice({
                 }
                 AlertToast("Saved Successfully", 1);
                 SetIsLoading(false);
+                // Check if hubConnection exists and is in the "Connected" state
+                if (
+                    hubConnection &&
+                    hubConnection.state === signalR.HubConnectionState.Connected
+                ) {
+                    hubConnection
+                        .invoke("SendNotification", res.data)
+                        .catch((error) => {
+                            console.error("Error sending notification:", error);
+                        });
+                } else {
+                    console.warn("HubConnection is not ready.");
+                }
             })
             .catch((err) => {
                 SetIsLoading(false);
                 AlertToast("Error please try again.", 2);
-                console.log(err);
             });
     };
     function GoBack() {
@@ -350,7 +417,99 @@ export default function CreateInvoice({
             handleFileUpload();
         }
     };
+    const supplierSelectOption = (jsonData) => {
+        const transformedData = jsonData.map((item) => ({
+            value: item.SupplierId,
+            label: item.SupplierName,
+        }));
+        return transformedData;
+    };
+    const categorySelectOption = (jsonData) => {
+        const filteredData = jsonData.filter((item) => item.StatusId === 1);
+        const transformedData = filteredData.map((item) => ({
+            value: item.CategoryId,
+            label: item.CategoryName,
+        }));
+        return transformedData;
+    };
+    const stateSelectOption = (jsonData) => {
+        const filteredData = jsonData.filter((item) => item.StatusId === 1);
+        const transformedData = filteredData.map((item) => ({
+            value: item.StateId,
+            label: item.StateName,
+        }));
+        return transformedData;
+    };
+    const companySelectOption = (jsonData) => {
+        let filteredData;
+        if (currentUser.role_id == 6 || currentUser.role_id == 7) {
+            filteredData = jsonData.filter(
+                (item) =>
+                    item.StateId === currentUser.state && item.StatusId === 1
+            );
+        } else if (selectedState) {
+            filteredData = jsonData.filter(
+                (item) =>
+                    item.StateId === selectedState.value && item.StatusId === 1
+            );
+        } else {
+            filteredData = jsonData.filter((item) => item.StatusId === 1);
+        }
+        const transformedData = filteredData.map((item) => ({
+            value: item.CompanyId,
+            label: item.CompanyName,
+        }));
 
+        return transformedData;
+    };
+    const handleSupplierSelectChange = (selectedOptions) => {
+        setSelectedSupplier(selectedOptions);
+    };
+    const handleCategorySelectChange = (selectedOptions) => {
+        setSelectedCategory(selectedOptions);
+    };
+    const handleStateSelectChange = (selectedOptions) => {
+        setSelectedState(selectedOptions);
+    };
+    const handleCompanySelectChange = (selectedOptions) => {
+        setSelectedCompany(selectedOptions);
+    };
+    function transformToSupplierOption(inputObject) {
+        const outputObject = {
+            value: inputObject?.SupplierId,
+            label: inputObject?.SupplierName,
+        };
+        return outputObject;
+    }
+    function transformToStateOption(inputObject) {
+        const outputObject = {
+            value: inputObject?.StateId,
+            label: inputObject?.StateName,
+        };
+        return outputObject;
+    }
+    function transformToCompanyOption(inputObject) {
+        const outputObject = {
+            value: inputObject?.CompanyId,
+            label: inputObject?.CompanyName,
+        };
+        return outputObject;
+    }
+    function transformToCategoryOption(inputObject) {
+        const outputObject = {
+            value: inputObject?.CategoryId,
+            label: inputObject?.CategoryName,
+        };
+        return outputObject;
+    }
+    function getCurrentDate() {
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, "0"); // Adding 1 to month because it's zero-based
+        const day = String(currentDate.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+    const todayDate = getCurrentDate();
     if (invoice) {
         return (
             <div className="bg-smooth flex justify-center">
@@ -364,110 +523,7 @@ export default function CreateInvoice({
                                 </h1>
                             </div>
                             <div className="grid grid-cols-2 p-2 gap-y-2 mt-5 pb-5 text-sm sm:text-base">
-                                <h1 className="text-gray-400 border-b">
-                                    Company:
-                                </h1>
-                                <div className="pb-2 w-full border-b">
-                                    <div>
-                                        <Listbox
-                                            value={selectedCompany}
-                                            onChange={(e) => {
-                                                setSelectedCompany(e);
-                                            }}
-                                        >
-                                            {({ open }) => (
-                                                <>
-                                                    <div className="relative ">
-                                                        <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                                            <span className="block truncate">
-                                                                {
-                                                                    selectedCompany?.CompanyName
-                                                                }
-                                                            </span>
-                                                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                <ChevronUpDownIcon
-                                                                    className="h-5 w-5 text-gray-400"
-                                                                    aria-hidden="true"
-                                                                />
-                                                            </span>
-                                                        </Listbox.Button>
-
-                                                        <Transition
-                                                            show={open}
-                                                            as={Fragment}
-                                                            leave="transition ease-in duration-100"
-                                                            leaveFrom="opacity-100"
-                                                            leaveTo="opacity-0"
-                                                        >
-                                                            <Listbox.Options className="absolute z-20 mt-1 max-h-32 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                                {filteredCompanies.map(
-                                                                    (
-                                                                        company
-                                                                    ) => (
-                                                                        <Listbox.Option
-                                                                            key={
-                                                                                company.CompanyId
-                                                                            }
-                                                                            className={({
-                                                                                active,
-                                                                            }) =>
-                                                                                classNames(
-                                                                                    active
-                                                                                        ? "bg-indigo-600 text-white"
-                                                                                        : "text-gray-900",
-                                                                                    "relative cursor-default select-none py-2 pl-3 pr-9"
-                                                                                )
-                                                                            }
-                                                                            value={
-                                                                                company
-                                                                            }
-                                                                        >
-                                                                            {({
-                                                                                selected,
-                                                                                active,
-                                                                            }) => (
-                                                                                <>
-                                                                                    <span
-                                                                                        className={classNames(
-                                                                                            selected
-                                                                                                ? "font-semibold"
-                                                                                                : "font-normal",
-                                                                                            "block truncate"
-                                                                                        )}
-                                                                                    >
-                                                                                        {
-                                                                                            company.CompanyName
-                                                                                        }
-                                                                                    </span>
-
-                                                                                    {selected ? (
-                                                                                        <span
-                                                                                            className={classNames(
-                                                                                                active
-                                                                                                    ? "text-white"
-                                                                                                    : "text-indigo-600",
-                                                                                                "absolute inset-y-0 right-0 flex items-center pr-4"
-                                                                                            )}
-                                                                                        >
-                                                                                            <CheckIcon
-                                                                                                className="h-5 w-5"
-                                                                                                aria-hidden="true"
-                                                                                            />
-                                                                                        </span>
-                                                                                    ) : null}
-                                                                                </>
-                                                                            )}
-                                                                        </Listbox.Option>
-                                                                    )
-                                                                )}
-                                                            </Listbox.Options>
-                                                        </Transition>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </Listbox>
-                                    </div>
-                                </div>
+                                {/* State Field */}
                                 {stateField == true ? (
                                     <h1 className="text-gray-400 border-b">
                                         State:
@@ -475,329 +531,92 @@ export default function CreateInvoice({
                                 ) : null}
                                 {stateField == true ? (
                                     <div className="pb-2 border-b">
-                                        <div>
-                                            <Listbox
+                                        <div className="flex flex-col gap-y-2">
+                                            <Select
+                                                placeholder={<div>State</div>}
+                                                styles={customStyles}
+                                                name="colors"
                                                 value={selectedState}
-                                                onChange={(e) => {
-                                                    setSelectedState(e);
-                                                }}
-                                            >
-                                                {({ open }) => (
-                                                    <>
-                                                        <div className="relative ">
-                                                            <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                                                <span className="block truncate">
-                                                                    {
-                                                                        selectedState?.StateName
-                                                                    }
-                                                                </span>
-                                                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                    <ChevronUpDownIcon
-                                                                        className="h-5 w-5 text-gray-400"
-                                                                        aria-hidden="true"
-                                                                    />
-                                                                </span>
-                                                            </Listbox.Button>
-
-                                                            <Transition
-                                                                show={open}
-                                                                as={Fragment}
-                                                                leave="transition ease-in duration-100"
-                                                                leaveFrom="opacity-100"
-                                                                leaveTo="opacity-0"
-                                                            >
-                                                                <Listbox.Options className="absolute z-20 mt-1 max-h-32 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                                    {states?.map(
-                                                                        (
-                                                                            state
-                                                                        ) => (
-                                                                            <Listbox.Option
-                                                                                key={
-                                                                                    state.StateId
-                                                                                }
-                                                                                className={({
-                                                                                    active,
-                                                                                }) =>
-                                                                                    classNames(
-                                                                                        active
-                                                                                            ? "bg-indigo-600 text-white"
-                                                                                            : "text-gray-900",
-                                                                                        "relative cursor-default select-none py-2 pl-3 pr-9"
-                                                                                    )
-                                                                                }
-                                                                                value={
-                                                                                    state
-                                                                                }
-                                                                            >
-                                                                                {({
-                                                                                    selected,
-                                                                                    active,
-                                                                                }) => (
-                                                                                    <>
-                                                                                        <span
-                                                                                            className={classNames(
-                                                                                                selected
-                                                                                                    ? "font-semibold"
-                                                                                                    : "font-normal",
-                                                                                                "block truncate"
-                                                                                            )}
-                                                                                        >
-                                                                                            {
-                                                                                                state.StateName
-                                                                                            }
-                                                                                        </span>
-
-                                                                                        {selected ? (
-                                                                                            <span
-                                                                                                className={classNames(
-                                                                                                    active
-                                                                                                        ? "text-white"
-                                                                                                        : "text-indigo-600",
-                                                                                                    "absolute inset-y-0 right-0 flex items-center pr-4"
-                                                                                                )}
-                                                                                            >
-                                                                                                <CheckIcon
-                                                                                                    className="h-5 w-5"
-                                                                                                    aria-hidden="true"
-                                                                                                />
-                                                                                            </span>
-                                                                                        ) : null}
-                                                                                    </>
-                                                                                )}
-                                                                            </Listbox.Option>
-                                                                        )
-                                                                    )}
-                                                                </Listbox.Options>
-                                                            </Transition>
-                                                        </div>
-                                                    </>
+                                                isSearchable={true} // Set isSearchable to false to disable the search functionality
+                                                options={stateSelectOption(
+                                                    states
                                                 )}
-                                            </Listbox>
+                                                onChange={
+                                                    handleStateSelectChange
+                                                }
+                                                className="basic-multi-select text-red "
+                                                classNamePrefix="select"
+                                            />
                                         </div>
                                     </div>
                                 ) : null}
+                                {/* Companies Field */}
+                                <h1 className="text-gray-400 border-b">
+                                    Company:
+                                </h1>
+                                <div className="pb-2 w-full border-b">
+                                    <div className="pb-2 border-b">
+                                        <div className="flex flex-col gap-y-2">
+                                            <Select
+                                                placeholder={<div>Company</div>}
+                                                styles={customStyles}
+                                                name="colors"
+                                                value={selectedCompany}
+                                                isSearchable={true} // Set isSearchable to false to disable the search functionality
+                                                options={companySelectOption(
+                                                    companies
+                                                )}
+                                                onChange={
+                                                    handleCompanySelectChange
+                                                }
+                                                className="basic-multi-select text-red "
+                                                classNamePrefix="select"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                                 <h1 className="text-gray-400 border-b">
                                     Supplier:
                                 </h1>
                                 <div className="pb-2 border-b">
-                                    <div>
-                                        <Listbox
+                                    <div className="flex flex-col gap-y-2">
+                                        <Select
+                                            placeholder={<div>Supplier</div>}
+                                            styles={customStyles}
+                                            name="colors"
                                             value={selectedSupplier}
-                                            onChange={(e) => {
-                                                setSelectedSupplier(e);
-                                            }}
-                                        >
-                                            {({ open }) => (
-                                                <>
-                                                    <div className="relative ">
-                                                        <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                                            <span className="block truncate">
-                                                                {
-                                                                    selectedSupplier?.SupplierName
-                                                                }
-                                                            </span>
-                                                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                <ChevronUpDownIcon
-                                                                    className="h-5 w-5 text-gray-400"
-                                                                    aria-hidden="true"
-                                                                />
-                                                            </span>
-                                                        </Listbox.Button>
-
-                                                        <Transition
-                                                            show={open}
-                                                            as={Fragment}
-                                                            leave="transition ease-in duration-100"
-                                                            leaveFrom="opacity-100"
-                                                            leaveTo="opacity-0"
-                                                        >
-                                                            <Listbox.Options className="absolute z-20 mt-1 max-h-32 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                                {supplierData
-                                                                    ?.filter(
-                                                                        (
-                                                                            item
-                                                                        ) =>
-                                                                            item.StatusId ==
-                                                                            1
-                                                                    )
-                                                                    .map(
-                                                                        (
-                                                                            supplier
-                                                                        ) => (
-                                                                            <Listbox.Option
-                                                                                key={
-                                                                                    supplier.SupplierId
-                                                                                }
-                                                                                className={({
-                                                                                    active,
-                                                                                }) =>
-                                                                                    classNames(
-                                                                                        active
-                                                                                            ? "bg-indigo-600 text-white"
-                                                                                            : "text-gray-900",
-                                                                                        "relative cursor-default select-none py-2 pl-3 pr-9"
-                                                                                    )
-                                                                                }
-                                                                                value={
-                                                                                    supplier
-                                                                                }
-                                                                            >
-                                                                                {({
-                                                                                    selected,
-                                                                                    active,
-                                                                                }) => (
-                                                                                    <>
-                                                                                        <span
-                                                                                            className={classNames(
-                                                                                                selected
-                                                                                                    ? "font-semibold"
-                                                                                                    : "font-normal",
-                                                                                                "block truncate"
-                                                                                            )}
-                                                                                        >
-                                                                                            {
-                                                                                                supplier.SupplierName
-                                                                                            }
-                                                                                        </span>
-
-                                                                                        {selected ? (
-                                                                                            <span
-                                                                                                className={classNames(
-                                                                                                    active
-                                                                                                        ? "text-white"
-                                                                                                        : "text-indigo-600",
-                                                                                                    "absolute inset-y-0 right-0 flex items-center pr-4"
-                                                                                                )}
-                                                                                            >
-                                                                                                <CheckIcon
-                                                                                                    className="h-5 w-5"
-                                                                                                    aria-hidden="true"
-                                                                                                />
-                                                                                            </span>
-                                                                                        ) : null}
-                                                                                    </>
-                                                                                )}
-                                                                            </Listbox.Option>
-                                                                        )
-                                                                    )}
-                                                            </Listbox.Options>
-                                                        </Transition>
-                                                    </div>
-                                                </>
+                                            isSearchable={true} // Set isSearchable to false to disable the search functionality
+                                            options={supplierSelectOption(
+                                                supplierData
                                             )}
-                                        </Listbox>
+                                            onChange={
+                                                handleSupplierSelectChange
+                                            }
+                                            className="basic-multi-select text-red "
+                                            classNamePrefix="select"
+                                        />
                                     </div>
                                 </div>
                                 <h1 className="text-gray-400 border-b">
                                     Category:
                                 </h1>
-                                <div className="pb-2 w-full border-b">
-                                    <div>
-                                        <Listbox
+                                <div className="pb-2 border-b">
+                                    <div className="flex flex-col gap-y-2">
+                                        <Select
+                                            placeholder={<div>Category</div>}
+                                            styles={customStyles}
+                                            name="colors"
                                             value={selectedCategory}
-                                            onChange={(e) => {
-                                                setSelectedCategory(e);
-                                            }}
-                                        >
-                                            {({ open }) => (
-                                                <>
-                                                    <div className="relative ">
-                                                        <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                                            <span className="block truncate">
-                                                                {
-                                                                    selectedCategory?.CategoryName
-                                                                }
-                                                            </span>
-                                                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                <ChevronUpDownIcon
-                                                                    className="h-5 w-5 text-gray-400"
-                                                                    aria-hidden="true"
-                                                                />
-                                                            </span>
-                                                        </Listbox.Button>
-
-                                                        <Transition
-                                                            show={open}
-                                                            as={Fragment}
-                                                            leave="transition ease-in duration-100"
-                                                            leaveFrom="opacity-100"
-                                                            leaveTo="opacity-0"
-                                                        >
-                                                            <Listbox.Options className="absolute z-20 mt-1 max-h-32 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                                {categories
-                                                                    ?.filter(
-                                                                        (
-                                                                            item
-                                                                        ) =>
-                                                                            item.StatusId ==
-                                                                            1
-                                                                    )
-                                                                    .map(
-                                                                        (
-                                                                            category
-                                                                        ) => (
-                                                                            <Listbox.Option
-                                                                                key={
-                                                                                    category.CategoryId
-                                                                                }
-                                                                                className={({
-                                                                                    active,
-                                                                                }) =>
-                                                                                    classNames(
-                                                                                        active
-                                                                                            ? "bg-indigo-600 text-white"
-                                                                                            : "text-gray-900",
-                                                                                        "relative cursor-default select-none py-2 pl-3 pr-9"
-                                                                                    )
-                                                                                }
-                                                                                value={
-                                                                                    category
-                                                                                }
-                                                                            >
-                                                                                {({
-                                                                                    selected,
-                                                                                    active,
-                                                                                }) => (
-                                                                                    <>
-                                                                                        <span
-                                                                                            className={classNames(
-                                                                                                selected
-                                                                                                    ? "font-semibold"
-                                                                                                    : "font-normal",
-                                                                                                "block truncate"
-                                                                                            )}
-                                                                                        >
-                                                                                            {
-                                                                                                category.CategoryName
-                                                                                            }
-                                                                                        </span>
-
-                                                                                        {selected ? (
-                                                                                            <span
-                                                                                                className={classNames(
-                                                                                                    active
-                                                                                                        ? "text-white"
-                                                                                                        : "text-indigo-600",
-                                                                                                    "absolute inset-y-0 right-0 flex items-center pr-4"
-                                                                                                )}
-                                                                                            >
-                                                                                                <CheckIcon
-                                                                                                    className="h-5 w-5"
-                                                                                                    aria-hidden="true"
-                                                                                                />
-                                                                                            </span>
-                                                                                        ) : null}
-                                                                                    </>
-                                                                                )}
-                                                                            </Listbox.Option>
-                                                                        )
-                                                                    )}
-                                                            </Listbox.Options>
-                                                        </Transition>
-                                                    </div>
-                                                </>
+                                            isSearchable={true} // Set isSearchable to false to disable the search functionality
+                                            options={categorySelectOption(
+                                                categories
                                             )}
-                                        </Listbox>
+                                            onChange={
+                                                handleCategorySelectChange
+                                            }
+                                            className="basic-multi-select text-red "
+                                            classNamePrefix="select"
+                                        />
                                     </div>
                                 </div>
                                 <h1 className="text-gray-400 border-b">
@@ -830,6 +649,7 @@ export default function CreateInvoice({
                                             "YYYY-MM-DD HH:mm:ss"
                                         ).format("YYYY-MM-DD")}
                                         name="to-date"
+                                        max={todayDate}
                                         className="block w-full max-w-lg h-[25px]  rounded-md border-0 py-1.5 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
                                     />
                                 </div>
@@ -869,11 +689,26 @@ export default function CreateInvoice({
                                 </h1>
                                 <div className="pb-2 border-b">
                                     <input
-                                        type="number"
+                                        type="text"
                                         required
-                                        defaultValue={invoice.Amount}
-                                        onChange={handleAmountChange}
                                         id="Amount"
+                                        defaultValue={invoice?.Amount}
+                                        onChange={(e) => {
+                                            // Remove any non-numeric characters except the decimal point
+                                            const cleanedValue =
+                                                e.target.value.replace(
+                                                    /[^0-9.]/g,
+                                                    ""
+                                                );
+                                            // Ensure only one decimal point is allowed
+                                            const decimalCount =
+                                                cleanedValue.split(".").length -
+                                                1;
+                                            if (decimalCount <= 1) {
+                                                setInvoiceAmount(cleanedValue);
+                                            }
+                                        }}
+                                        value={invoiceAmount}
                                         className="rounded w-full h-7 border-gray-200 focus:border-0 focus:ring focus:ring-goldt"
                                     />
                                 </div>
@@ -891,7 +726,6 @@ export default function CreateInvoice({
                                         <option value="1">Credit Card</option>
                                     </select>
                                 </div>
-
                                 {paymentField ? (
                                     <h1 className="text-gray-400 border-b hidden">
                                         Paid:
@@ -957,6 +791,8 @@ export default function CreateInvoice({
                                         type="checkbox"
                                         id="PodRequired"
                                         defaultChecked={invoice.PodRequired}
+                                        value={checkbox}
+                                        onChange={handleInputChange}
                                         className="rounded text-green-500 focus:ring-green-300"
                                     />
                                 </div>
@@ -992,7 +828,7 @@ export default function CreateInvoice({
                                                 <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-smooth"></div>
                                             </div>
                                         ) : (
-                                            "Edit"
+                                            "Save"
                                         )
                                     }
                                     disabled={isLoading}
@@ -1019,440 +855,100 @@ export default function CreateInvoice({
                             </div>
 
                             <div className="grid grid-cols-2 p-2 gap-y-2  pb-5 mt-5 text-sm sm:text-base">
-                                <h1 className="text-gray-400 border-b">
-                                    Company:
-                                </h1>
-                                <div className="pb-2 w-full border-b">
-                                    <div>
-                                        <Listbox
-                                            value={selectedCompany}
-                                            onChange={(e) => {
-                                                setSelectedCompany(e);
-                                            }}
-                                        >
-                                            {({ open }) => (
-                                                <>
-                                                    <div className="relative ">
-                                                        <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                                            <span className="block truncate">
-                                                                {
-                                                                    selectedCompany?.CompanyName
-                                                                }
-                                                            </span>
-                                                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                <ChevronUpDownIcon
-                                                                    className="h-5 w-5 text-gray-400"
-                                                                    aria-hidden="true"
-                                                                />
-                                                            </span>
-                                                        </Listbox.Button>
-
-                                                        <Transition
-                                                            show={open}
-                                                            as={Fragment}
-                                                            leave="transition ease-in duration-100"
-                                                            leaveFrom="opacity-100"
-                                                            leaveTo="opacity-0"
-                                                        >
-                                                            <Listbox.Options className="absolute z-20 mt-1 max-h-32 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                                {filteredCompanies.map(
-                                                                    (
-                                                                        company
-                                                                    ) => (
-                                                                        <Listbox.Option
-                                                                            key={
-                                                                                company.CompanyId
-                                                                            }
-                                                                            className={({
-                                                                                active,
-                                                                            }) =>
-                                                                                classNames(
-                                                                                    active
-                                                                                        ? "bg-indigo-600 text-white"
-                                                                                        : "text-gray-900",
-                                                                                    "relative cursor-default select-none py-2 pl-3 pr-9"
-                                                                                )
-                                                                            }
-                                                                            value={
-                                                                                company
-                                                                            }
-                                                                        >
-                                                                            {({
-                                                                                selected,
-                                                                                active,
-                                                                            }) => (
-                                                                                <>
-                                                                                    <span
-                                                                                        className={classNames(
-                                                                                            selected
-                                                                                                ? "font-semibold"
-                                                                                                : "font-normal",
-                                                                                            "block truncate"
-                                                                                        )}
-                                                                                    >
-                                                                                        {
-                                                                                            company.CompanyName
-                                                                                        }
-                                                                                    </span>
-
-                                                                                    {selected ? (
-                                                                                        <span
-                                                                                            className={classNames(
-                                                                                                active
-                                                                                                    ? "text-white"
-                                                                                                    : "text-indigo-600",
-                                                                                                "absolute inset-y-0 right-0 flex items-center pr-4"
-                                                                                            )}
-                                                                                        >
-                                                                                            <CheckIcon
-                                                                                                className="h-5 w-5"
-                                                                                                aria-hidden="true"
-                                                                                            />
-                                                                                        </span>
-                                                                                    ) : null}
-                                                                                </>
-                                                                            )}
-                                                                        </Listbox.Option>
-                                                                    )
-                                                                )}
-                                                            </Listbox.Options>
-                                                        </Transition>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </Listbox>
-                                    </div>
-                                </div>
                                 {stateField == true ? (
                                     <h1 className="text-gray-400 border-b">
                                         State:
+                                        <span className="text-red-500">*</span>
                                     </h1>
                                 ) : null}
                                 {stateField == true ? (
                                     <div className="pb-2 border-b">
-                                        <div>
-                                            <Listbox
+                                        <div className="flex flex-col gap-y-2">
+                                            <Select
+                                                placeholder={<div>State</div>}
+                                                styles={customStyles}
+                                                name="colors"
                                                 value={selectedState}
-                                                onChange={(e) => {
-                                                    setSelectedState(e);
-                                                }}
-                                            >
-                                                {({ open }) => (
-                                                    <>
-                                                        <div className="relative ">
-                                                            <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                                                <span className="block truncate">
-                                                                    {
-                                                                        selectedState?.StateName
-                                                                    }
-                                                                </span>
-                                                                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                    <ChevronUpDownIcon
-                                                                        className="h-5 w-5 text-gray-400"
-                                                                        aria-hidden="true"
-                                                                    />
-                                                                </span>
-                                                            </Listbox.Button>
-
-                                                            <Transition
-                                                                show={open}
-                                                                as={Fragment}
-                                                                leave="transition ease-in duration-100"
-                                                                leaveFrom="opacity-100"
-                                                                leaveTo="opacity-0"
-                                                            >
-                                                                <Listbox.Options className="absolute z-20 mt-1 max-h-32 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                                    {states?.map(
-                                                                        (
-                                                                            state
-                                                                        ) => (
-                                                                            <Listbox.Option
-                                                                                key={
-                                                                                    state.StateId
-                                                                                }
-                                                                                className={({
-                                                                                    active,
-                                                                                }) =>
-                                                                                    classNames(
-                                                                                        active
-                                                                                            ? "bg-indigo-600 text-white"
-                                                                                            : "text-gray-900",
-                                                                                        "relative cursor-default select-none py-2 pl-3 pr-9"
-                                                                                    )
-                                                                                }
-                                                                                value={
-                                                                                    state
-                                                                                }
-                                                                            >
-                                                                                {({
-                                                                                    selected,
-                                                                                    active,
-                                                                                }) => (
-                                                                                    <>
-                                                                                        <span
-                                                                                            className={classNames(
-                                                                                                selected
-                                                                                                    ? "font-semibold"
-                                                                                                    : "font-normal",
-                                                                                                "block truncate"
-                                                                                            )}
-                                                                                        >
-                                                                                            {
-                                                                                                state.StateName
-                                                                                            }
-                                                                                        </span>
-
-                                                                                        {selected ? (
-                                                                                            <span
-                                                                                                className={classNames(
-                                                                                                    active
-                                                                                                        ? "text-white"
-                                                                                                        : "text-indigo-600",
-                                                                                                    "absolute inset-y-0 right-0 flex items-center pr-4"
-                                                                                                )}
-                                                                                            >
-                                                                                                <CheckIcon
-                                                                                                    className="h-5 w-5"
-                                                                                                    aria-hidden="true"
-                                                                                                />
-                                                                                            </span>
-                                                                                        ) : null}
-                                                                                    </>
-                                                                                )}
-                                                                            </Listbox.Option>
-                                                                        )
-                                                                    )}
-                                                                </Listbox.Options>
-                                                            </Transition>
-                                                        </div>
-                                                    </>
+                                                isSearchable={true} // Set isSearchable to false to disable the search functionality
+                                                options={stateSelectOption(
+                                                    states
                                                 )}
-                                            </Listbox>
+                                                onChange={
+                                                    handleStateSelectChange
+                                                }
+                                                required
+                                                className="basic-multi-select text-red "
+                                                classNamePrefix="select"
+                                            />
                                         </div>
                                     </div>
                                 ) : null}
                                 <h1 className="text-gray-400 border-b">
-                                    Supplier:
+                                    Company:
+                                    <span className="text-red-500">*</span>
                                 </h1>
                                 <div className="pb-2 border-b">
-                                    <div>
-                                        <Listbox
-                                            value={selectedSupplier}
-                                            onChange={(e) => {
-                                                setSelectedSupplier(e);
-                                            }}
-                                        >
-                                            {({ open }) => (
-                                                <>
-                                                    <div className="relative ">
-                                                        <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                                            <span className="block truncate">
-                                                                {
-                                                                    selectedSupplier?.SupplierName
-                                                                }
-                                                            </span>
-                                                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                <ChevronUpDownIcon
-                                                                    className="h-5 w-5 text-gray-400"
-                                                                    aria-hidden="true"
-                                                                />
-                                                            </span>
-                                                        </Listbox.Button>
-
-                                                        <Transition
-                                                            show={open}
-                                                            as={Fragment}
-                                                            leave="transition ease-in duration-100"
-                                                            leaveFrom="opacity-100"
-                                                            leaveTo="opacity-0"
-                                                        >
-                                                            <Listbox.Options className="absolute z-20 mt-1 max-h-32 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                                {supplierData
-                                                                    ?.filter(
-                                                                        (
-                                                                            item
-                                                                        ) =>
-                                                                            item.StatusId ==
-                                                                            1
-                                                                    )
-                                                                    .map(
-                                                                        (
-                                                                            supplier
-                                                                        ) => (
-                                                                            <Listbox.Option
-                                                                                key={
-                                                                                    supplier.SupplierId
-                                                                                }
-                                                                                className={({
-                                                                                    active,
-                                                                                }) =>
-                                                                                    classNames(
-                                                                                        active
-                                                                                            ? "bg-indigo-600 text-white"
-                                                                                            : "text-gray-900",
-                                                                                        "relative cursor-default select-none py-2 pl-3 pr-9"
-                                                                                    )
-                                                                                }
-                                                                                value={
-                                                                                    supplier
-                                                                                }
-                                                                            >
-                                                                                {({
-                                                                                    selected,
-                                                                                    active,
-                                                                                }) => (
-                                                                                    <>
-                                                                                        <span
-                                                                                            className={classNames(
-                                                                                                selected
-                                                                                                    ? "font-semibold"
-                                                                                                    : "font-normal",
-                                                                                                "block truncate"
-                                                                                            )}
-                                                                                        >
-                                                                                            {
-                                                                                                supplier.SupplierName
-                                                                                            }
-                                                                                        </span>
-
-                                                                                        {selected ? (
-                                                                                            <span
-                                                                                                className={classNames(
-                                                                                                    active
-                                                                                                        ? "text-white"
-                                                                                                        : "text-indigo-600",
-                                                                                                    "absolute inset-y-0 right-0 flex items-center pr-4"
-                                                                                                )}
-                                                                                            >
-                                                                                                <CheckIcon
-                                                                                                    className="h-5 w-5"
-                                                                                                    aria-hidden="true"
-                                                                                                />
-                                                                                            </span>
-                                                                                        ) : null}
-                                                                                    </>
-                                                                                )}
-                                                                            </Listbox.Option>
-                                                                        )
-                                                                    )}
-                                                            </Listbox.Options>
-                                                        </Transition>
-                                                    </div>
-                                                </>
+                                    <div className="flex flex-col gap-y-2">
+                                        <Select
+                                            placeholder={<div>Company</div>}
+                                            styles={customStyles}
+                                            name="colors"
+                                            value={selectedCompany}
+                                            isSearchable={true} // Set isSearchable to false to disable the search functionality
+                                            options={companySelectOption(
+                                                companies
                                             )}
-                                        </Listbox>
+                                            onChange={handleCompanySelectChange}
+                                            required
+                                            className="basic-multi-select text-red "
+                                            classNamePrefix="select"
+                                        />
+                                    </div>
+                                </div>
+                                <h1 className="text-gray-400 border-b">
+                                    Supplier:
+                                    <span className="text-red-500">*</span>
+                                </h1>
+                                <div className="pb-2 border-b">
+                                    <div className="flex flex-col gap-y-2">
+                                        <Select
+                                            placeholder={<div>Supplier</div>}
+                                            styles={customStyles}
+                                            name="colors"
+                                            value={selectedSupplier}
+                                            isSearchable={true} // Set isSearchable to false to disable the search functionality
+                                            options={supplierSelectOption(
+                                                supplierData
+                                            )}
+                                            onChange={
+                                                handleSupplierSelectChange
+                                            }
+                                            className="basic-multi-select text-red "
+                                            classNamePrefix="select"
+                                        />
                                     </div>
                                 </div>
                                 <h1 className="text-gray-400 border-b">
                                     Category:
+                                    <span className="text-red-500">*</span>
                                 </h1>
-                                <div className="pb-2 w-full border-b">
-                                    <div>
-                                        <Listbox
+                                <div className="pb-2 border-b">
+                                    <div className="flex flex-col gap-y-2">
+                                        <Select
+                                            placeholder={<div>Category</div>}
+                                            styles={customStyles}
+                                            name="colors"
                                             value={selectedCategory}
-                                            onChange={(e) => {
-                                                setSelectedCategory(e);
-                                            }}
-                                        >
-                                            {({ open }) => (
-                                                <>
-                                                    <div className="relative ">
-                                                        <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-[0.07rem] pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                                            <span className="block truncate">
-                                                                {
-                                                                    selectedCategory?.CategoryName
-                                                                }
-                                                            </span>
-                                                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                                                <ChevronUpDownIcon
-                                                                    className="h-5 w-5 text-gray-400"
-                                                                    aria-hidden="true"
-                                                                />
-                                                            </span>
-                                                        </Listbox.Button>
-
-                                                        <Transition
-                                                            show={open}
-                                                            as={Fragment}
-                                                            leave="transition ease-in duration-100"
-                                                            leaveFrom="opacity-100"
-                                                            leaveTo="opacity-0"
-                                                        >
-                                                            <Listbox.Options className="absolute z-20 mt-1 max-h-32 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                                                {categories
-                                                                    ?.filter(
-                                                                        (
-                                                                            item
-                                                                        ) =>
-                                                                            item.StatusId ==
-                                                                            1
-                                                                    )
-                                                                    .map(
-                                                                        (
-                                                                            category
-                                                                        ) => (
-                                                                            <Listbox.Option
-                                                                                key={
-                                                                                    category.CategoryId
-                                                                                }
-                                                                                className={({
-                                                                                    active,
-                                                                                }) =>
-                                                                                    classNames(
-                                                                                        active
-                                                                                            ? "bg-indigo-600 text-white"
-                                                                                            : "text-gray-900",
-                                                                                        "relative cursor-default select-none py-2 pl-3 pr-9"
-                                                                                    )
-                                                                                }
-                                                                                value={
-                                                                                    category
-                                                                                }
-                                                                            >
-                                                                                {({
-                                                                                    selected,
-                                                                                    active,
-                                                                                }) => (
-                                                                                    <>
-                                                                                        <span
-                                                                                            className={classNames(
-                                                                                                selected
-                                                                                                    ? "font-semibold"
-                                                                                                    : "font-normal",
-                                                                                                "block truncate"
-                                                                                            )}
-                                                                                        >
-                                                                                            {
-                                                                                                category.CategoryName
-                                                                                            }
-                                                                                        </span>
-
-                                                                                        {selected ? (
-                                                                                            <span
-                                                                                                className={classNames(
-                                                                                                    active
-                                                                                                        ? "text-white"
-                                                                                                        : "text-indigo-600",
-                                                                                                    "absolute inset-y-0 right-0 flex items-center pr-4"
-                                                                                                )}
-                                                                                            >
-                                                                                                <CheckIcon
-                                                                                                    className="h-5 w-5"
-                                                                                                    aria-hidden="true"
-                                                                                                />
-                                                                                            </span>
-                                                                                        ) : null}
-                                                                                    </>
-                                                                                )}
-                                                                            </Listbox.Option>
-                                                                        )
-                                                                    )}
-                                                            </Listbox.Options>
-                                                        </Transition>
-                                                    </div>
-                                                </>
+                                            isSearchable={true} // Set isSearchable to false to disable the search functionality
+                                            options={categorySelectOption(
+                                                categories
                                             )}
-                                        </Listbox>
+                                            onChange={
+                                                handleCategorySelectChange
+                                            }
+                                            className="basic-multi-select text-red "
+                                            classNamePrefix="select"
+                                        />
                                     </div>
                                 </div>
                                 <h1 className="text-gray-400 border-b">
@@ -1485,6 +981,7 @@ export default function CreateInvoice({
                                             setInvoiceDate(e.target.value);
                                         }}
                                         name="to-date"
+                                        max={todayDate}
                                         className="block w-full max-w-lg h-[25px]  rounded-md border-0 py-1.5 text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
                                     />
                                 </div>
@@ -1527,12 +1024,26 @@ export default function CreateInvoice({
                                 </h1>
                                 <div className="pb-2 border-b">
                                     <input
-                                        type="number"
+                                        type="text"
                                         required
                                         id="Amount"
                                         onChange={(e) => {
-                                            setInvoiceAmount(e.target.value);
+                                            // Remove any non-numeric characters except the decimal point
+                                            const cleanedValue =
+                                                e.target.value.replace(
+                                                    /[^0-9.]/g,
+                                                    ""
+                                                );
+
+                                            // Ensure only one decimal point is allowed
+                                            const decimalCount =
+                                                cleanedValue.split(".").length -
+                                                1;
+                                            if (decimalCount <= 1) {
+                                                setInvoiceAmount(cleanedValue);
+                                            }
                                         }}
+                                        value={invoiceAmount}
                                         className="rounded w-full h-7 border-gray-200 focus:border-0 focus:ring focus:ring-goldt"
                                     />
                                 </div>
@@ -1619,7 +1130,8 @@ export default function CreateInvoice({
                                     <input
                                         type="checkbox"
                                         id="PodRequired"
-                                        defaultValue={""}
+                                        value={checkbox} // Set the input value to the state variable
+                                        onChange={handleInputChange} // Handle input changes
                                         className="rounded text-green-500 focus:ring-green-300"
                                     />
                                 </div>

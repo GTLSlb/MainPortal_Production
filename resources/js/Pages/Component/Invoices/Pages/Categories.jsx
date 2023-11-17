@@ -8,6 +8,8 @@ export default function Categories({
     currentUser,
     AlertToast,
     categories,
+    currentPage, 
+    setCurrentPage,
     setCategories,
     getCategories,
 }) {
@@ -17,15 +19,19 @@ export default function Categories({
     const addurl = `${url}api/GTIS/Add/Category`;
     const [filterValue, setFilterValue] = useState();
     const [editIndex, setEditIndex] = useState(null);
-    const [currentPage, setCurrentPage] = useState(0);
+    // const [currentPage, setCurrentPage] = useState(0);
     const [isFetching, setIsFetching] = useState();
     const [filteredData, setFilteredData] = useState(categories);
     const [showAddRow, setShowAddRow] = useState(false);
     function handleShowHideAddButton() {
-        if (currentUser.role_id == 8) {
-            return false;
-        } else {
+        if (
+            currentUser.role_id == 8 ||
+            currentUser.role_id == 10 ||
+            currentUser.role_id == 1
+        ) {
             return true;
+        } else {
+            return false;
         }
     }
     useEffect(() => {
@@ -46,7 +52,11 @@ export default function Categories({
 
         const filtered = categories.filter((item) => {
             const ConsNbMatch =
-                name.length > 0 ? item.CategoryName.includes(name) : true;
+                name.length > 0
+                    ? item.CategoryName.toLowerCase().includes(
+                          name.toLowerCase()
+                      )
+                    : true;
             // Convert end date string to Date object
 
             return ConsNbMatch; // Compare the item date to the filter dates
@@ -111,18 +121,6 @@ export default function Categories({
                             </div>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-x-5 gap-y-3">
-                            {/* <div className="">
-                                <InvoicesButton
-                                    name="Export"
-                                    className="w-full hidden"
-                                />
-                            </div>
-                            <div className="">
-                                <InvoicesButton
-                                    name="Import"
-                                    className="w-full hidden"
-                                />
-                            </div>  */}
                             {editIndex != null ? (
                                 <div className="col-span-2">
                                     <InvoicesButton
